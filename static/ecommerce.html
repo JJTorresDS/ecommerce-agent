@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mimo & Co — Mock Catalog</title>
+<style>
+  :root {
+    --bg: #faf7f5;
+    --card-bg: #ffffff;
+    --text: #2b2b2b;
+    --muted: #8a8a8a;
+    --accent-winter: #3a5a7a;
+    --accent-spring: #7a9b3a;
+    --accent-discount: #c0392b;
+    --accent-newin: #b8860b;
+    --border: #ececec;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    text-align: center;
+    padding: 32px 16px 16px;
+  }
+  header h1 {
+    margin: 0 0 4px;
+    font-size: 1.8rem;
+    letter-spacing: 0.5px;
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  section.section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px 8px;
+  }
+  section.section h2 {
+    font-size: 1.3rem;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    padding-bottom: 16px;
+  }
+  .product-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  .tags {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    z-index: 2;
+  }
+  .tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    color: #fff;
+    background: #555;
+  }
+  .tag.discount { background: var(--accent-discount); }
+  .tag.winter { background: var(--accent-winter); }
+  .tag.new-in { background: var(--accent-newin); }
+  .tag.spring { background: var(--accent-spring); }
+  .tag.off { background: #111; }
+  .tag.boys { background: #2c5f8a; }
+  .tag.girls { background: #b23a6b; }
+  .img-link {
+    display: block;
+    background: #f2f2f2;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+  }
+  .img-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .info {
+    padding: 12px 14px 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .name {
+    font-size: 0.85rem;
+    margin: 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    min-height: 2.2em;
+  }
+  .sku {
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.3px;
+    font-family: 'Courier New', monospace;
+  }
+  .prices {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .price-current {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .price-original {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+  .description {
+    margin: 4px 0 0;
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Mimo &amp; Co — Mock Catalog</h1>
+  <p>Sample product feed generated for technical interview / n8n webhook testing</p>
+</header>
+
+<section class="section">
+  <h2>Junior &amp; Girls —Coats, Jackets and Vests</h2>
+  <div class="grid">
+
+    <article class="product-card" data-name="KID LOVE VEST" data-sku="G-001" data-url="https://www.mimo.com.ar/i26n3507at-chaleco-kid-love/p?property__Color=TORNASOL%20ROSA">
+      <div class="tags"><span class="tag discount">Discount</span><span class="tag winter">Winter</span><span class="tag girls">Girls</span><span class="tag off">-50%</span></div>
+      <a href="https://www.mimo.com.ar/i26n3507at-chaleco-kid-love/p?property__Color=TORNASOL%20ROSA" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17754654-500-auto?v=639122878297370000&width=500&height=auto&aspect=true" alt="KID LOVE VEST" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">KID LOVE VEST</h3>
+        <span class="sku">SKU: G-001</span>
+        <div class="prices"><span class="price-original">$69.900</span> <span class="price-current">$34.950</span></div>
+        <p class="description">KID LOVE VEST — SKU: G-001 — Discount, Winter, Girls, 50% off. Price: $34.950 (was $69.900).</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="JR HARBIN VEST" data-sku="G-002" data-url="https://www.mimo.com.ar/i26n350385-chaleco-jr-harbin/p?property__Color=Crudo%20Cl">
+      <div class="tags"><span class="tag discount">Discount</span><span class="tag winter">Winter</span><span class="tag girls">Girls</span><span class="tag off">-50%</span></div>
+      <a href="https://www.mimo.com.ar/i26n350385-chaleco-jr-harbin/p?property__Color=Crudo%20Cl" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17747107-500-auto?v=639083365008000000&width=500&height=auto&aspect=true" alt="JR HARBIN VEST" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">JR HARBIN VEST</h3>
+        <span class="sku">SKU: G-002</span>
+        <div class="prices"><span class="price-original">$73.900</span> <span class="price-current">$36.950</span></div>
+        <p class="description">JR HARBIN VEST — SKU: G-002 — Discount, Winter, Girls, 50% off. Price: $36.950 (was $73.900).</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="SYDNEY VEST" data-sku="G-003" data-url="https://www.mimo.com.ar/i26n3506ts-chaleco-sidney/p?property__Color=Tornasol">
+      <div class="tags"><span class="tag discount">Discount</span><span class="tag winter">Winter</span><span class="tag girls">Girls</span><span class="tag off">-50%</span></div>
+      <a href="https://www.mimo.com.ar/i26n3506ts-chaleco-sidney/p?property__Color=Tornasol" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17757337-500-auto?v=639138443169300000&width=500&height=auto&aspect=true" alt="SYDNEY VEST" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">SYDNEY VEST</h3>
+        <span class="sku">SKU: G-003</span>
+        <div class="prices"><span class="price-original">$75.900</span> <span class="price-current">$37.950</span></div>
+        <p class="description">SYDNEY VEST — SKU: G-003 — Discount, Winter, Girls, 50% off. Price: $37.950 (was $75.900).</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="JR SIBERIA VEST" data-sku="G-004" data-url="https://www.mimo.com.ar/i26n35054h-chaleco-jr-siberia/p?property__Color=Gris%20Oscuro">
+      <div class="tags"><span class="tag discount">Discount</span><span class="tag winter">Winter</span><span class="tag girls">Girls</span><span class="tag off">-50%</span></div>
+      <a href="https://www.mimo.com.ar/i26n35054h-chaleco-jr-siberia/p?property__Color=Gris%20Oscuro" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17738155-500-auto?v=639075541428570000&width=500&height=auto&aspect=true" alt="JR SIBERIA VEST" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">JR SIBERIA VEST</h3>
+        <span class="sku">SKU: G-004</span>
+        <div class="prices"><span class="price-original">$49.900</span> <span class="price-current">$24.950</span></div>
+        <p class="description">JR SIBERIA VEST — SKU: G-004 — Discount, Winter, Girls, 50% off. Price: $24.950 (was $49.900).</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="ATHENS JACKET" data-sku="B-001" data-url="https://www.mimo.com.ar/i26x7101bl-campera-atenas/p?property__Color=Blue">
+      <div class="tags"><span class="tag discount">Discount</span><span class="tag winter">Winter</span><span class="tag boys">Boys</span><span class="tag off">-30%</span></div>
+      <a href="https://www.mimo.com.ar/i26x7101bl-campera-atenas/p?property__Color=Blue" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17758988-500-auto?v=639173224864870000&width=500&height=auto&aspect=true" alt="ATHENS JACKET" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">ATHENS JACKET</h3>
+        <span class="sku">SKU: B-001</span>
+        <div class="prices"><span class="price-original">$49.900</span> <span class="price-current">$34.930</span></div>
+        <p class="description">ATHENS JACKET — SKU: B-001 — Discount, Winter, Boys, 30% off. Price: $34.930 (was $49.900).</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="JR DENIM LONDON COAT" data-sku="B-002" data-url="https://www.mimo.com.ar/tax920518-abrigo-jr-denim-london/p?property__Color=Azul">
+      <div class="tags"><span class="tag discount">Discount</span><span class="tag winter">Winter</span><span class="tag boys">Boys</span><span class="tag off">-30%</span></div>
+      <a href="https://www.mimo.com.ar/tax920518-abrigo-jr-denim-london/p?property__Color=Azul" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17737397-500-auto?v=639075540090300000&width=500&height=auto&aspect=true" alt="JR DENIM LONDON COAT" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">JR DENIM LONDON COAT</h3>
+        <span class="sku">SKU: B-002</span>
+        <div class="prices"><span class="price-original">$91.900</span> <span class="price-current">$64.330</span></div>
+        <p class="description">JR DENIM LONDON COAT — SKU: B-002 — Discount, Winter, Boys, 30% off. Price: $64.330 (was $91.900).</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="TURKEY JACKET" data-sku="G-005" data-url="https://www.mimo.com.ar/i26n40015i-campera-turquia/p?property__Color=Marr%C3%B3n">
+      <div class="tags"><span class="tag discount">Discount</span><span class="tag winter">Winter</span><span class="tag girls">Girls</span><span class="tag off">-40%</span></div>
+      <a href="https://www.mimo.com.ar/i26n40015i-campera-turquia/p?property__Color=Marr%C3%B3n" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17746786-500-auto?v=639083364493070000&width=500&height=auto&aspect=true" alt="TURKEY JACKET" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">TURKEY JACKET</h3>
+        <span class="sku">SKU: G-005</span>
+        <div class="prices"><span class="price-original">$104.900</span> <span class="price-current">$62.940</span></div>
+        <p class="description">TURKEY JACKET — SKU: G-005 — Discount, Winter, Girls, 40% off. Price: $62.940 (was $104.900).</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="TURKEY JACKET" data-sku="G-006" data-url="https://www.mimo.com.ar/i26n40012c-campera-turquia/p?property__Color=Off%20White">
+      <div class="tags"><span class="tag discount">Discount</span><span class="tag winter">Winter</span><span class="tag girls">Girls</span><span class="tag off">-40%</span></div>
+      <a href="https://www.mimo.com.ar/i26n40012c-campera-turquia/p?property__Color=Off%20White" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17754150-500-auto?v=639113353340630000&width=500&height=auto&aspect=true" alt="TURKEY JACKET" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">TURKEY JACKET</h3>
+        <span class="sku">SKU: G-006</span>
+        <div class="prices"><span class="price-original">$94.900</span> <span class="price-current">$56.940</span></div>
+        <p class="description">TURKEY JACKET — SKU: G-006 — Discount, Winter, Girls, 40% off. Price: $56.940 (was $94.900).</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="ATHENS JACKET" data-sku="B-003" data-url="https://www.mimo.com.ar/i26x71017g-campera-atenas/p?property__Color=Lila">
+      <div class="tags"><span class="tag discount">Discount</span><span class="tag winter">Winter</span><span class="tag boys">Boys</span><span class="tag off">-30%</span></div>
+      <a href="https://www.mimo.com.ar/i26x71017g-campera-atenas/p?property__Color=Lila" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17758922-500-auto?v=639173223233300000&width=500&height=auto&aspect=true" alt="ATHENS JACKET" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">ATHENS JACKET</h3>
+        <span class="sku">SKU: B-003</span>
+        <div class="prices"><span class="price-original">$49.900</span> <span class="price-current">$34.930</span></div>
+        <p class="description">ATHENS JACKET — SKU: B-003 — Discount, Winter, Boys, 30% off. Price: $34.930 (was $49.900).</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="PRINT JACKET" data-sku="G-007" data-url="https://www.mimo.com.ar/i26n400602-campera-print/p?property__Color=Crudo">
+      <div class="tags"><span class="tag discount">Discount</span><span class="tag winter">Winter</span><span class="tag girls">Girls</span><span class="tag off">-40%</span></div>
+      <a href="https://www.mimo.com.ar/i26n400602-campera-print/p?property__Color=Crudo" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17757307-500-auto?v=639138442256500000&width=500&height=auto&aspect=true" alt="PRINT JACKET" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">PRINT JACKET</h3>
+        <span class="sku">SKU: G-007</span>
+        <div class="prices"><span class="price-original">$95.900</span> <span class="price-current">$57.540</span></div>
+        <p class="description">PRINT JACKET — SKU: G-007 — Discount, Winter, Girls, 40% off. Price: $57.540 (was $95.900).</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="section">
+  <h2>New Arrivals</h2>
+  <div class="grid">
+
+    <article class="product-card" data-name="KID MURCIA T-SHIRT" data-sku="G-008" data-url="https://www.mimo.com.ar/v27b290509-remera-kid-murcia/p?property__Color=Azul%20Egeo">
+      <div class="tags"><span class="tag new-in">New In</span><span class="tag spring">Spring</span><span class="tag girls">Girls</span></div>
+      <a href="https://www.mimo.com.ar/v27b290509-remera-kid-murcia/p?property__Color=Azul%20Egeo" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17759316-500-auto?v=639201669410330000&width=500&height=auto&aspect=true" alt="KID MURCIA T-SHIRT" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">KID MURCIA T-SHIRT</h3>
+        <span class="sku">SKU: G-008</span>
+        <div class="prices"><span class="price-current">$29.900</span></div>
+        <p class="description">KID MURCIA T-SHIRT — SKU: G-008 — New In, Spring, Girls. Price: $29.900.</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="KID FLOWER TANK TOP" data-sku="G-009" data-url="https://www.mimo.com.ar/v27b270209-musculosa-kid-flower/p?property__Color=Azul%20Egeo">
+      <div class="tags"><span class="tag new-in">New In</span><span class="tag spring">Spring</span><span class="tag girls">Girls</span></div>
+      <a href="https://www.mimo.com.ar/v27b270209-musculosa-kid-flower/p?property__Color=Azul%20Egeo" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17759308-500-auto?v=639201668724900000&width=500&height=auto&aspect=true" alt="KID FLOWER TANK TOP" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">KID FLOWER TANK TOP</h3>
+        <span class="sku">SKU: G-009</span>
+        <div class="prices"><span class="price-current">$29.900</span></div>
+        <p class="description">KID FLOWER TANK TOP — SKU: G-009 — New In, Spring, Girls. Price: $29.900.</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="KID BALI SHORTS" data-sku="G-010" data-url="https://www.mimo.com.ar/v27b4405k6-short-kid-bali/p?property__Color=BORDO%20CLARO">
+      <div class="tags"><span class="tag new-in">New In</span><span class="tag spring">Spring</span><span class="tag girls">Girls</span></div>
+      <a href="https://www.mimo.com.ar/v27b4405k6-short-kid-bali/p?property__Color=BORDO%20CLARO" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17759294-500-auto?v=639201666742400000&width=500&height=auto&aspect=true" alt="KID BALI SHORTS" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">KID BALI SHORTS</h3>
+        <span class="sku">SKU: G-010</span>
+        <div class="prices"><span class="price-current">$29.900</span></div>
+        <p class="description">KID BALI SHORTS — SKU: G-010 — New In, Spring, Girls. Price: $29.900.</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="KID CLUB T-SHIRT" data-sku="G-011" data-url="https://www.mimo.com.ar/v27b290801-remera-kid-club/p?property__Color=Blanco">
+      <div class="tags"><span class="tag new-in">New In</span><span class="tag spring">Spring</span><span class="tag girls">Girls</span></div>
+      <a href="https://www.mimo.com.ar/v27b290801-remera-kid-club/p?property__Color=Blanco" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17759322-500-auto?v=639201670103830000&width=500&height=auto&aspect=true" alt="KID CLUB T-SHIRT" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">KID CLUB T-SHIRT</h3>
+        <span class="sku">SKU: G-011</span>
+        <div class="prices"><span class="price-current">$29.900</span></div>
+        <p class="description">KID CLUB T-SHIRT — SKU: G-011 — New In, Spring, Girls. Price: $29.900.</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="KID RIO CARDIGAN" data-sku="G-012" data-url="https://www.mimo.com.ar/v26b370201-cardigan-kid-rio/p?property__Color=Blanco">
+      <div class="tags"><span class="tag new-in">New In</span><span class="tag spring">Spring</span><span class="tag girls">Girls</span></div>
+      <a href="https://www.mimo.com.ar/v26b370201-cardigan-kid-rio/p?property__Color=Blanco" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17760972-500-auto?v=639215385917500000&width=500&height=auto&aspect=true" alt="KID RIO CARDIGAN" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">KID RIO CARDIGAN</h3>
+        <span class="sku">SKU: G-012</span>
+        <div class="prices"><span class="price-current">$49.900</span></div>
+        <p class="description">KID RIO CARDIGAN — SKU: G-012 — New In, Spring, Girls. Price: $49.900.</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="KID MURCIA TANK TOP" data-sku="G-013" data-url="https://www.mimo.com.ar/v27b2704k6-musculosa-kid-murcia/p?property__Color=BORDO%20CLARO">
+      <div class="tags"><span class="tag new-in">New In</span><span class="tag spring">Spring</span><span class="tag girls">Girls</span></div>
+      <a href="https://www.mimo.com.ar/v27b2704k6-musculosa-kid-murcia/p?property__Color=BORDO%20CLARO" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17759273-500-auto?v=639201590792800000&width=500&height=auto&aspect=true" alt="KID MURCIA TANK TOP" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">KID MURCIA TANK TOP</h3>
+        <span class="sku">SKU: G-013</span>
+        <div class="prices"><span class="price-current">$25.900</span></div>
+        <p class="description">KID MURCIA TANK TOP — SKU: G-013 — New In, Spring, Girls. Price: $25.900.</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="KID PRINT TANK TOP" data-sku="G-014" data-url="https://www.mimo.com.ar/v27b2703k6-musculosa-kid-print/p?property__Color=BORDO%20CLARO">
+      <div class="tags"><span class="tag new-in">New In</span><span class="tag spring">Spring</span><span class="tag girls">Girls</span></div>
+      <a href="https://www.mimo.com.ar/v27b2703k6-musculosa-kid-print/p?property__Color=BORDO%20CLARO" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17759265-500-auto?v=639201589779170000&width=500&height=auto&aspect=true" alt="KID PRINT TANK TOP" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">KID PRINT TANK TOP</h3>
+        <span class="sku">SKU: G-014</span>
+        <div class="prices"><span class="price-current">$34.900</span></div>
+        <p class="description">KID PRINT TANK TOP — SKU: G-014 — New In, Spring, Girls. Price: $34.900.</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="KID VIENNA DENIM" data-sku="G-015" data-url="https://www.mimo.com.ar/tab921548-denim-kid-viena/p?property__Color=Celeste%20Vintage">
+      <div class="tags"><span class="tag new-in">New In</span><span class="tag spring">Spring</span><span class="tag girls">Girls</span></div>
+      <a href="https://www.mimo.com.ar/tab921548-denim-kid-viena/p?property__Color=Celeste%20Vintage" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17761542-500-auto?v=639228697111600000&width=500&height=auto&aspect=true" alt="KID VIENNA DENIM" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">KID VIENNA DENIM</h3>
+        <span class="sku">SKU: G-015</span>
+        <div class="prices"><span class="price-current">$59.900</span></div>
+        <p class="description">KID VIENNA DENIM — SKU: G-015 — New In, Spring, Girls. Price: $59.900.</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="KID PRINT WINDBREAKER" data-sku="G-016" data-url="https://www.mimo.com.ar/v27n400130-rompevientos-kid-print/p?property__Color=Rosa">
+      <div class="tags"><span class="tag new-in">New In</span><span class="tag spring">Spring</span><span class="tag girls">Girls</span></div>
+      <a href="https://www.mimo.com.ar/v27n400130-rompevientos-kid-print/p?property__Color=Rosa" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17760549-500-auto?v=639214466741600000&width=500&height=auto&aspect=true" alt="KID PRINT WINDBREAKER" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">KID PRINT WINDBREAKER</h3>
+        <span class="sku">SKU: G-016</span>
+        <div class="prices"><span class="price-current">$79.900</span></div>
+        <p class="description">KID PRINT WINDBREAKER — SKU: G-016 — New In, Spring, Girls. Price: $79.900.</p>
+      </div>
+    </article>
+
+    <article class="product-card" data-name="LIGHTWEIGHT WINDBREAKER" data-sku="B-004" data-url="https://www.mimo.com.ar/v27x7101n8-rompevientos-liviano/p?property__Color=Vintage%20Blue">
+      <div class="tags"><span class="tag new-in">New In</span><span class="tag spring">Spring</span><span class="tag boys">Boys</span></div>
+      <a href="https://www.mimo.com.ar/v27x7101n8-rompevientos-liviano/p?property__Color=Vintage%20Blue" target="_blank" rel="noopener" class="img-link">
+        <img src="https://mimoar.vtexassets.com/arquivos/ids/17760189-500-auto?v=639213735928700000&width=500&height=auto&aspect=true" alt="LIGHTWEIGHT WINDBREAKER" loading="lazy">
+      </a>
+      <div class="info">
+        <h3 class="name">LIGHTWEIGHT WINDBREAKER</h3>
+        <span class="sku">SKU: B-004</span>
+        <div class="prices"><span class="price-current">$62.900</span></div>
+        <p class="description">LIGHTWEIGHT WINDBREAKER — SKU: B-004 — New In, Spring, Boys. Price: $62.900.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<footer>
+  Data scraped from mimo.com.ar saved pages · 20 products total · Mock data for interview purposes only
+</footer>
+
+</body>
+</html>

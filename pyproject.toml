@@ -1,0 +1,21 @@
+[project]
+name = "ecommerce-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.141.1",
+    "google-api-python-client>=2.199.0",
+    "google-auth>=2.57.0",
+    "jupyter>=1.1.1",
+    "openai>=2.53.0",
+    "openai-agents>=0.19.4",
+    "pgvector>=0.5.0",
+    "psycopg[binary]>=3.3.4",
+    "python-multipart>=0.0.32",
+    "sentence-transformers>=5.7.0",
+    "sqlalchemy>=2.0.51",
+    "torch>=2.13.0",
+    "uvicorn>=0.52.1",
+]

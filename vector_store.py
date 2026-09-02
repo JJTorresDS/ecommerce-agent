@@ -55,7 +55,7 @@ def search_products(query: str, top_k: int = 5) -> list[dict]:
     with Session(engine) as session:
         rows = session.execute(
             text("""
-                SELECT product_id, content
+                SELECT product_id, name, price, description, content
                 FROM product_embeddings
                 ORDER BY embedding <=> CAST(:query_vector AS vector)
                 LIMIT :top_k
@@ -67,6 +67,11 @@ def search_products(query: str, top_k: int = 5) -> list[dict]:
         ).all()
 
     return [
-        {"product_id": row.product_id, "content": row.content}
+        {
+            "sku": row.product_id,
+            "name": row.name,
+            "price": row.price,
+            "description": row.description or row.content,
+        }
         for row in rows
     ]

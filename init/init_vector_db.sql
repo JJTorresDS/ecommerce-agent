@@ -6,8 +6,12 @@ CREATE EXTENSION IF NOT EXISTS vector;
 CREATE TABLE IF NOT EXISTS product_embeddings (
     id SERIAL PRIMARY KEY,
     product_id TEXT NOT NULL UNIQUE,
+    name TEXT,
+    price TEXT,
+    description TEXT,
     content TEXT NOT NULL,
     embedding VECTOR(1024) NOT NULL,
+    embedding_model TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 

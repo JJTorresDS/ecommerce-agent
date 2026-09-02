@@ -20,7 +20,12 @@ Usage from a notebook or script:
 
     init_db()
     upsert_products_batch([
-        {"product_id": "SKU123", "content": "Zapatillas de running con amortiguación"}
+        {
+            "sku": "G-001",
+            "name": "KID LOVE VEST",
+            "price": "$34.950",
+            "description": "KID LOVE VEST — Discount, Winter, Girls, 50% off.",
+        }
     ])
 """
 
@@ -41,6 +46,24 @@ DB_URL = (
 
 engine = create_engine(DB_URL, echo=False)
 
+_ADD_COLUMN_SQL = [
+    "ALTER TABLE product_embeddings ADD COLUMN IF NOT EXISTS name TEXT",
+    "ALTER TABLE product_embeddings ADD COLUMN IF NOT EXISTS price TEXT",
+    "ALTER TABLE product_embeddings ADD COLUMN IF NOT EXISTS description TEXT",
+    "ALTER TABLE product_embeddings ADD COLUMN IF NOT EXISTS embedding_model TEXT",
+]
+
+
+def _sku(product: dict) -> str:
+    return product.get("sku") or product["product_id"]
+
+
+def _description(product: dict) -> str:
+    """Embedding text. Seed/catalog rows use `description`; CSV upload
+    still sends `content`, which is treated as the same field.
+    """
+    return product.get("description") or product["content"]
+
 
 def init_db() -> None:
     """Create the product_embeddings table if it doesn't exist yet.
@@ -54,10 +77,8 @@ def init_db() -> None:
     fresh table (or a migration), not just re-running this function,
     since VECTOR(n) is fixed at creation time.
 
-    NOTE: this includes embedding_model, which an earlier version of
-    this file omitted from the CREATE TABLE despite upsert_products_batch
-    and update_embedding both writing to it -- that mismatch would have
-    caused inserts to fail against a freshly created table.
+    Also ALTERs in name/price/description so an existing table created
+    before those columns existed still matches the current schema.
     """
     with Session(engine) as session:
         session.execute(
@@ -65,65 +86,111 @@ def init_db() -> None:
                 CREATE TABLE IF NOT EXISTS product_embeddings (
                     id SERIAL PRIMARY KEY,
                     product_id TEXT UNIQUE NOT NULL,
+                    name TEXT,
+                    price TEXT,
+                    description TEXT,
                     content TEXT NOT NULL,
                     embedding VECTOR({provider.embedding_dim}) NOT NULL,
                     embedding_model TEXT NOT NULL
                 )
             """)
         )
+        for stmt in _ADD_COLUMN_SQL:
+            session.execute(text(stmt))
+        session.commit()
+
+
+def delete_all_products() -> None:
+    """Remove every product row. Used by the seed script so dummy data
+    matches the current storefront instead of mixing in leftover SKUs.
+    """
+    with Session(engine) as session:
+        session.execute(text("DELETE FROM product_embeddings"))
         session.commit()
 
 
 def upsert_products_batch(products: list[dict]) -> None:
     """Insert or update a batch of products and their embeddings.
 
-    products: list of dicts like {"product_id": "SKU123", "content": "..."}
+    Each dict needs a unique id (`sku` or `product_id`) and text to
+    embed (`description` or `content`). Optional catalog fields: name,
+    price.
     """
-    contents = [p["content"] for p in products]
-    vectors = provider.embed(contents)
+    rows = []
+    texts = []
+    for product in products:
+        description = _description(product)
+        rows.append(
+            {
+                "product_id": _sku(product),
+                "name": product.get("name"),
+                "price": product.get("price"),
+                "description": description,
+                "content": description,
+            }
+        )
+        texts.append(description)
+
+    vectors = provider.embed(texts)
 
     with Session(engine) as session:
         session.execute(
             text("""
-                INSERT INTO product_embeddings (product_id, content, embedding, embedding_model)
-                VALUES (:product_id, :content, CAST(:embedding AS vector), :embedding_model)
+                INSERT INTO product_embeddings (
+                    product_id, name, price, description, content,
+                    embedding, embedding_model
+                )
+                VALUES (
+                    :product_id, :name, :price, :description, :content,
+                    CAST(:embedding AS vector), :embedding_model
+                )
                 ON CONFLICT (product_id)
                 DO UPDATE SET
+                    name = EXCLUDED.name,
+                    price = EXCLUDED.price,
+                    description = EXCLUDED.description,
                     content = EXCLUDED.content,
                     embedding = EXCLUDED.embedding,
                     embedding_model = EXCLUDED.embedding_model
             """),
             [
                 {
-                    "product_id": p["product_id"],
-                    "content": p["content"],
-                    "embedding": str(v.tolist()),
+                    **row,
+                    "embedding": str(vector.tolist()),
                     "embedding_model": provider.model_name,
                 }
-                for p, v in zip(products, vectors)
+                for row, vector in zip(rows, vectors)
             ],
         )
         session.commit()
 
 
 def update_embedding(product_id: str) -> None:
-    """Recompute the embedding for a product using its existing content."""
+    """Recompute the embedding for a product using its stored description."""
     with Session(engine) as session:
-        content = session.execute(
-            text("SELECT content FROM product_embeddings WHERE product_id = :product_id"),
+        description = session.execute(
+            text("""
+                SELECT COALESCE(description, content)
+                FROM product_embeddings
+                WHERE product_id = :product_id
+            """),
             {"product_id": product_id},
         ).scalar_one()
 
-        vector = provider.embed([content])[0]
+        vector = provider.embed([description])[0]
 
         session.execute(
             text("""
                 UPDATE product_embeddings
-                SET embedding = CAST(:embedding AS vector), embedding_model = :embedding_model
+                SET embedding = CAST(:embedding AS vector),
+                    embedding_model = :embedding_model,
+                    content = :description,
+                    description = :description
                 WHERE product_id = :product_id
             """),
             {
                 "product_id": product_id,
+                "description": description,
                 "embedding": str(vector.tolist()),
                 "embedding_model": provider.model_name,
             },

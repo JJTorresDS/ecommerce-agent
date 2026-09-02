@@ -1,52 +1,134 @@
 """
 Seed the database with dummy products for testing the ecommerce agent.
 
+Catalog matches static/ecommerce.html (Mimo & Co mock storefront).
+
 Usage:
-    uv run python seed_products.py
+    uv run python init/seed_products.py
 """
 
-from embeddings.ingest import init_db, upsert_products_batch
+from embeddings.ingest import delete_all_products, init_db, upsert_products_batch
 
 DUMMY_PRODUCTS = [
     {
-        "product_id": "SKU-001",
-        "content": "Zapatillas Nike Air Max para correr, hombre, talla 42, color negro",
+        "name": "KID LOVE VEST",
+        "sku": "G-001",
+        "price": "$34.950",
+        "description": "KID LOVE VEST — Discount, Winter, Girls, 50% off.",
     },
     {
-        "product_id": "SKU-002",
-        "content": "Tenis deportivos Adidas running, mujer, talla 38, color blanco",
+        "name": "JR HARBIN VEST",
+        "sku": "G-002",
+        "price": "$36.950",
+        "description": "JR HARBIN VEST — Discount, Winter, Girls, 50% off.",
     },
     {
-        "product_id": "SKU-003",
-        "content": "Camiseta de algodón para hombre, cuello redondo, talla M, color azul",
+        "name": "SYDNEY VEST",
+        "sku": "G-003",
+        "price": "$37.950",
+        "description": "SYDNEY VEST — Discount, Winter, Girls, 50% off.",
     },
     {
-        "product_id": "SKU-004",
-        "content": "Pantalón deportivo jogger unisex, talla L, color gris",
+        "name": "JR SIBERIA VEST",
+        "sku": "G-004",
+        "price": "$24.950",
+        "description": "JR SIBERIA VEST — Discount, Winter, Girls, 50% off.",
     },
     {
-        "product_id": "SKU-005",
-        "content": "Mochila resistente al agua para laptop de 15 pulgadas, color negro",
+        "name": "ATHENS JACKET",
+        "sku": "B-001",
+        "price": "$34.930",
+        "description": "ATHENS JACKET — Discount, Winter, Boys, 30% off.",
     },
     {
-        "product_id": "SKU-006",
-        "content": "Audífonos inalámbricos Bluetooth con cancelación de ruido, color blanco",
+        "name": "JR DENIM LONDON COAT",
+        "sku": "B-002",
+        "price": "$64.330",
+        "description": "JR DENIM LONDON COAT — Discount, Winter, Boys, 30% off.",
     },
     {
-        "product_id": "SKU-007",
-        "content": "Reloj inteligente deportivo con monitor de ritmo cardíaco, resistente al agua",
+        "name": "TURKEY JACKET",
+        "sku": "G-005",
+        "price": "$62.940",
+        "description": "TURKEY JACKET — Discount, Winter, Girls, 40% off.",
     },
     {
-        "product_id": "SKU-008",
-        "content": "Botella térmica de acero inoxidable, 1 litro, mantiene la temperatura 12 horas",
+        "name": "TURKEY JACKET",
+        "sku": "G-006",
+        "price": "$56.940",
+        "description": "TURKEY JACKET — Discount, Winter, Girls, 40% off.",
     },
     {
-        "product_id": "SKU-009",
-        "content": "Chaqueta impermeable para hombre, ideal para lluvia, talla XL, color verde",
+        "name": "ATHENS JACKET",
+        "sku": "B-003",
+        "price": "$34.930",
+        "description": "ATHENS JACKET — Discount, Winter, Boys, 30% off.",
     },
     {
-        "product_id": "SKU-010",
-        "content": "Bolso de mano para mujer, cuero sintético, color café, correa ajustable",
+        "name": "PRINT JACKET",
+        "sku": "G-007",
+        "price": "$57.540",
+        "description": "PRINT JACKET — Discount, Winter, Girls, 40% off.",
+    },
+    {
+        "name": "KID MURCIA T-SHIRT",
+        "sku": "G-008",
+        "price": "$29.900",
+        "description": "KID MURCIA T-SHIRT — New In, Spring, Girls.",
+    },
+    {
+        "name": "KID FLOWER TANK TOP",
+        "sku": "G-009",
+        "price": "$29.900",
+        "description": "KID FLOWER TANK TOP — New In, Spring, Girls.",
+    },
+    {
+        "name": "KID BALI SHORTS",
+        "sku": "G-010",
+        "price": "$29.900",
+        "description": "KID BALI SHORTS — New In, Spring, Girls.",
+    },
+    {
+        "name": "KID CLUB T-SHIRT",
+        "sku": "G-011",
+        "price": "$29.900",
+        "description": "KID CLUB T-SHIRT — New In, Spring, Girls.",
+    },
+    {
+        "name": "KID RIO CARDIGAN",
+        "sku": "G-012",
+        "price": "$49.900",
+        "description": "KID RIO CARDIGAN — New In, Spring, Girls.",
+    },
+    {
+        "name": "KID MURCIA TANK TOP",
+        "sku": "G-013",
+        "price": "$25.900",
+        "description": "KID MURCIA TANK TOP — New In, Spring, Girls.",
+    },
+    {
+        "name": "KID PRINT TANK TOP",
+        "sku": "G-014",
+        "price": "$34.900",
+        "description": "KID PRINT TANK TOP — New In, Spring, Girls.",
+    },
+    {
+        "name": "KID VIENNA DENIM",
+        "sku": "G-015",
+        "price": "$59.900",
+        "description": "KID VIENNA DENIM — New In, Spring, Girls.",
+    },
+    {
+        "name": "KID PRINT WINDBREAKER",
+        "sku": "G-016",
+        "price": "$79.900",
+        "description": "KID PRINT WINDBREAKER — New In, Spring, Girls.",
+    },
+    {
+        "name": "LIGHTWEIGHT WINDBREAKER",
+        "sku": "B-004",
+        "price": "$62.900",
+        "description": "LIGHTWEIGHT WINDBREAKER — New In, Spring, Boys.",
     },
 ]
 
@@ -54,6 +136,9 @@ DUMMY_PRODUCTS = [
 def main():
     print("Initializing database (creating table if needed)...")
     init_db()
+
+    print("Clearing existing products...")
+    delete_all_products()
 
     print(f"Embedding and inserting {len(DUMMY_PRODUCTS)} dummy products...")
     upsert_products_batch(DUMMY_PRODUCTS)

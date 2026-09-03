@@ -82,6 +82,17 @@ class GoogleDocIngest(BaseModel):
         default=None,
         description="Optional short summary so the agent can decide when to search this document.",
     )
+    chunk_chars: int | None = Field(
+        default=None,
+        ge=1,
+        description=(
+            "Max characters per chunk. Omit to use OpenAI File Search's default "
+            "(800 tokens ≈ 3200 characters, with 50% overlap). "
+            "FAQ / short Q&A pages: 1200–1400, so each page stays in one chunk. "
+            "Contracts, statutes, or other long-form docs: 3200 is usually fine."
+        ),
+        examples=[1300, 3200],
+    )
 
 
 @app.post("/ask", response_model=Answer)
@@ -167,7 +178,9 @@ def _google_doc_id_from_url(url: str) -> str | None:
     description=(
         "Paste the Google Doc URL from your browser. "
         "You do not need to copy the document ID — the full link is enough. "
-        "Share the document with the service account as a Viewer first."
+        "Share the document with the service account as a Viewer first. "
+        "chunk_chars is optional: omit it for OpenAI's 3200-character default, "
+        "use 1200–1400 for FAQs, or ~3200 for contracts and legal text."
     ),
 )
 async def ingest_google_doc(payload: GoogleDocIngest):
@@ -219,6 +232,7 @@ async def ingest_google_doc(payload: GoogleDocIngest):
             content=content,
             document_id=document_id,
             summary=(payload.summary or "").strip() or None,
+            chunk_chars=payload.chunk_chars,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

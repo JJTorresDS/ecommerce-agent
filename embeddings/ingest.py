@@ -174,6 +174,7 @@ def upsert_document(
     content: str,
     document_id: str | None = None,
     summary: str | None = None,
+    chunk_chars: int | None = None,
 ) -> dict:
     """Insert or replace a document and embed its chunks.
 
@@ -184,8 +185,12 @@ def upsert_document(
     `summary` is optional catalog text for the LLM to choose a document
     before running embedding search. On update, omit it to keep the
     stored summary.
+    `chunk_chars` is the max characters per chunk. None uses the OpenAI
+    File Search default (800 tokens ≈ 3200 characters, 50% overlap).
     """
-    chunks = _chunk_text(content)
+    max_chars = chunk_chars or _CHUNK_CHARS
+    overlap = max_chars // 2
+    chunks = _chunk_text(content, max_chars=max_chars, overlap=overlap)
     if not chunks:
         raise ValueError(f"Document '{filename}' has no text to embed")
 
@@ -287,6 +292,7 @@ def upsert_document(
         "filename": filename,
         "summary": stored_summary,
         "chunks": len(chunks),
+        "chunk_chars": max_chars,
         "has_embedding": True,
     }
 

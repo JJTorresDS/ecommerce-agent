@@ -32,12 +32,18 @@ def _build_docs_service(credentials):
     return build("docs", "v1", credentials=credentials)
 
 
-def get_doc_text(document_id: str, creds_path: str) -> str:
-    """Fetch a Google Doc and return its plain text content, given a path to a JSON key file."""
+def get_doc(document_id: str, creds_path: str) -> tuple[str, str]:
+    """Fetch a Google Doc and return `(title, plain text)`."""
     credentials = service_account.Credentials.from_service_account_file(
         creds_path, scopes=SCOPES
     )
-    return _get_doc_text_with_credentials(document_id, credentials)
+    return _get_doc_with_credentials(document_id, credentials)
+
+
+def get_doc_text(document_id: str, creds_path: str) -> str:
+    """Fetch a Google Doc and return its plain text content, given a path to a JSON key file."""
+    _, text = get_doc(document_id, creds_path)
+    return text
 
 
 def get_doc_text_from_json_string(document_id: str, key_json: str) -> str:
@@ -47,10 +53,11 @@ def get_doc_text_from_json_string(document_id: str, key_json: str) -> str:
     credentials = service_account.Credentials.from_service_account_info(
         info, scopes=SCOPES
     )
-    return _get_doc_text_with_credentials(document_id, credentials)
+    _, text = _get_doc_with_credentials(document_id, credentials)
+    return text
 
 
-def _get_doc_text_with_credentials(document_id: str, credentials) -> str:
+def _get_doc_with_credentials(document_id: str, credentials) -> tuple[str, str]:
     service = _build_docs_service(credentials)
     doc = service.documents().get(documentId=document_id).execute()
 
@@ -64,7 +71,8 @@ def _get_doc_text_with_credentials(document_id: str, credentials) -> str:
             if text_run and "content" in text_run:
                 text_parts.append(text_run["content"])
 
-    return "".join(text_parts)
+    title = (doc.get("title") or "").strip()
+    return title, "".join(text_parts)
 
 
 def main():

@@ -24,7 +24,11 @@ import os
 from dotenv import load_dotenv
 from agents import Agent, OpenAIResponsesModel
 from openai import AsyncOpenAI
-from tools import get_item_details, search_faq_knowledgebase, search_products
+from tools import (
+    get_item_details,
+    search_faq_knowledgebase,
+    search_products,
+)
 load_dotenv()
 
 # --- Provider selection (.env: LOCAL_MODEL=true/false) ----------------------
@@ -57,6 +61,21 @@ model = OpenAIResponsesModel(
 
 
 
+from agents.lifecycle import AgentHooksBase
+
+
+class PrintToolHooks(AgentHooksBase):
+    async def on_tool_start(self, context, agent, tool):
+        args = getattr(context, "tool_arguments", None)
+        print(f"[tool] called {tool.name} args={args}", flush=True)
+
+    async def on_tool_end(self, context, agent, tool, result):
+        preview = repr(result)
+        if len(preview) > 400:
+            preview = preview[:400] + "..."
+        print(f"[tool] {tool.name} returned {preview}", flush=True)
+
+
 # --- Define the agent --------------------------------------------------------
 agent = Agent(
     name="ecommerce_agent",
@@ -64,9 +83,15 @@ agent = Agent(
 You are a helpful assistant.
 Use the available tools whenever they are relevant to answering the user's
 request. If a tool isn't relevant, just answer directly.
+
 """,
     model=model,
-    tools=[get_item_details, search_faq_knowledgebase, search_products],
+    hooks=PrintToolHooks(),
+    tools=[
+        get_item_details,
+        search_faq_knowledgebase,
+        search_products,
+    ],
 )
 
 

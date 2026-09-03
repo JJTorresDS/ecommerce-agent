@@ -134,8 +134,12 @@ DUMMY_PRODUCTS = [
 
 
 def main():
-    print("Dropping and recreating product_embeddings...")
-    init_db()
+    print("Creating tables if they do not already exist...")
+    try:
+        init_db()
+    except RuntimeError as exc:
+        print(exc)
+        raise SystemExit(1) from exc
 
     print(f"Embedding and inserting {len(DUMMY_PRODUCTS)} dummy products...")
     upsert_products_batch(DUMMY_PRODUCTS)

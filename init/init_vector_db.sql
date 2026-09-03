@@ -5,7 +5,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- bge-m3 produces 1024-dimensional embeddings
 CREATE TABLE IF NOT EXISTS product_embeddings (
     id SERIAL PRIMARY KEY,
-    product_id TEXT NOT NULL UNIQUE,
+    sku TEXT NOT NULL UNIQUE,
     name TEXT,
     price TEXT,
     description TEXT,

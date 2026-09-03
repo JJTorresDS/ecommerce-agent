@@ -7,7 +7,7 @@ Usage:
     uv run python init/seed_products.py
 """
 
-from embeddings.ingest import delete_all_products, init_db, upsert_products_batch
+from embeddings.ingest import init_db, upsert_products_batch
 
 DUMMY_PRODUCTS = [
     {
@@ -134,11 +134,8 @@ DUMMY_PRODUCTS = [
 
 
 def main():
-    print("Initializing database (creating table if needed)...")
+    print("Dropping and recreating product_embeddings...")
     init_db()
-
-    print("Clearing existing products...")
-    delete_all_products()
 
     print(f"Embedding and inserting {len(DUMMY_PRODUCTS)} dummy products...")
     upsert_products_batch(DUMMY_PRODUCTS)

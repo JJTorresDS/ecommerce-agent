@@ -78,6 +78,11 @@ def ui():
     return FileResponse("static/index.html")
 
 
+@app.get("/ecommerce")
+def ecommerce_catalog():
+    return FileResponse("static/ecommerce.html")
+
+
 @app.post("/products/upload")
 async def upload_products(file: UploadFile = File(...)):
     if not file.filename or not file.filename.lower().endswith(".csv"):
@@ -93,24 +98,24 @@ async def upload_products(file: UploadFile = File(...)):
     if not reader.fieldnames:
         raise HTTPException(status_code=400, detail="CSV is empty")
 
-    required = {"product_id", "content"}
+    required = {"sku", "content"}
     missing = required - {h.strip() for h in reader.fieldnames}
     if missing:
         raise HTTPException(
             status_code=400,
-            detail=f"CSV must have columns: product_id, content. Missing: {sorted(missing)}",
+            detail=f"CSV must have columns: sku, content. Missing: {sorted(missing)}",
         )
 
     products = []
     for i, row in enumerate(reader, start=2):  # row 1 is the header
-        product_id = (row.get("product_id") or "").strip()
+        sku = (row.get("sku") or "").strip()
         content = (row.get("content") or "").strip()
-        if not product_id or not content:
+        if not sku or not content:
             raise HTTPException(
                 status_code=400,
-                detail=f"Row {i}: product_id and content are required",
+                detail=f"Row {i}: sku and content are required",
             )
-        products.append({"product_id": product_id, "content": content})
+        products.append({"sku": sku, "content": content})
 
     if not products:
         raise HTTPException(status_code=400, detail="CSV has no data rows")

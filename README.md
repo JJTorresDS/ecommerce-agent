@@ -24,6 +24,12 @@ Or:
 uv run python db/seed_products.py
 ```
 
+`init_db()` sizes `VECTOR(...)` from the active provider (`hf` → 1024, `gemini` → 768). Gemini's native vectors are 3072-d; the app requests (and truncates + L2-normalizes) down to 768 so they fit. Switching `EMBEDDING_PROVIDER` after tables exist needs a drop and re-seed — pgvector cannot mix widths:
+
+```sql
+DROP TABLE IF EXISTS product_embeddings, document_embeddings, documents CASCADE;
+```
+
 Download the local embedding model once (offline HF after that):
 
 ```bash
@@ -46,7 +52,7 @@ See `.env`. Useful flags:
 
 - `LOCAL_MODEL=true` — Ollama (`OLLAMA_MODEL`, default `qwen2.5:7b`)
 - `AGENT_TRACING=true` — OpenAI Agents SDK traces
-- `EMBEDDING_PROVIDER=hf` or `gemini`
+- `EMBEDDING_PROVIDER=hf` or `gemini` (`GEMINI_API_KEY` required for Gemini). Vector width is fixed when tables are created; do not switch providers without dropping those tables.
 
 ## Layout
 

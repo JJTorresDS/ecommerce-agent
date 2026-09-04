@@ -201,6 +201,8 @@ The sync job skips ids that start with `file_`. It does not `ALTER` tables.
 
 New databases (`db/init_vector_db.sql` and `ingest.schema.init_db`) use **HNSW**. Existing databases that still have IVFFlat `lists = 100` keep working because retrieval sets `ivfflat.probes = 100` per query. No live `ALTER`.
 
+`embedding VECTOR(...)` width is fixed at `CREATE`. Python `init_db()` uses `provider.embedding_dim` (`hf` / bge-m3: 1024; `gemini`: 768). `db/init_vector_db.sql` is hardcoded `VECTOR(1024)` for HF. Gemini's API returns 3072-d vectors; `GeminiEmbeddingProvider` requests `dimensions=768` and, if the API still returns 3072, truncates and L2-normalizes (Matryoshka). Switching providers after tables exist requires dropping `product_embeddings`, `document_embeddings`, and `documents`.
+
 ```mermaid
 erDiagram
     product_embeddings {
@@ -246,7 +248,7 @@ erDiagram
 | `LOCAL_MODEL` | `true` → Ollama, else OpenRouter |
 | `OLLAMA_MODEL` / `OLLAMA_BASE_URL` | Local model |
 | `OPEN_ROUTER_API_KEY` / `OPENROUTER_MODEL` | Hosted model |
-| `EMBEDDING_PROVIDER` | `hf` (default) or `gemini` |
+| `EMBEDDING_PROVIDER` | `hf` (default, 1024-d) or `gemini` (`GEMINI_API_KEY`, stored as 768-d) |
 | `GOOGLE_SERVICE_ACCOUNT_FILE` | Defaults to `secrets/google_service_account.json` |
 | `AGENT_TRACING` | `true` enables Agents SDK traces |
 

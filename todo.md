@@ -1,4 +1,9 @@
 - [x] Change prompt instructiosn to .md
 - [x] Tests
 - [x] Agents.md that asks to do test driven dev and update the architecture.md file
-- [ ] 
+- [ ] Add formal tracing
+- [ ] Add memory
+- [ ] Add Evals
+- [ ] Add monitoring using grafana
+- [ ] Dockerize the work
+- [ ] deploy

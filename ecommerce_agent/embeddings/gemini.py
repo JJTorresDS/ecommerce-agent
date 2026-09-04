@@ -28,9 +28,20 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
         response = self._client.embeddings.create(
             input=texts,
             model=self.model_name,
+            dimensions=self.embedding_dim,
         )
-        ordered = sorted(response.data, key=lambda d: d.index)
-        return np.array([d.embedding for d in ordered])
+        items = list(response.data)
+        if items and all(getattr(item, "index", None) is not None for item in items):
+            items = sorted(items, key=lambda item: item.index)
+        vectors = np.array([item.embedding for item in items], dtype=float)
+        if vectors.ndim == 1:
+            vectors = vectors.reshape(1, -1)
+        if vectors.shape[1] > self.embedding_dim:
+            vectors = vectors[:, : self.embedding_dim]
+            norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+            norms = np.where(norms == 0, 1.0, norms)
+            vectors = vectors / norms
+        return vectors
 
     def similarity(self, vec_a: np.ndarray, vec_b: np.ndarray) -> float:
         denom = np.linalg.norm(vec_a) * np.linalg.norm(vec_b)

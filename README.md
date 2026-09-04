@@ -1,6 +1,6 @@
 # ecommerce-agent
 
-Chat UI and tools over a local (Ollama) or OpenRouter model, with a pgvector catalog and knowledge base.
+Chat UI and tools over Ollama, OpenRouter, or OpenAI, with a pgvector catalog and knowledge base.
 
 ## Run
 
@@ -24,7 +24,7 @@ Or:
 uv run python db/seed_products.py
 ```
 
-`init_db()` sizes `VECTOR(...)` from the active provider (`hf` → 1024, `gemini` → 768). Gemini's native vectors are 3072-d; the app requests (and truncates + L2-normalizes) down to 768 so they fit. Switching `EMBEDDING_PROVIDER` after tables exist needs a drop and re-seed — pgvector cannot mix widths:
+`init_db()` sizes `VECTOR(...)` from the active provider in `config.py` (`hf` → 1024, `gemini` → 768, `openai` → 1536). Gemini's native vectors are 3072-d; the app requests (and truncates + L2-normalizes) down to 768 so they fit. Switching `EMBEDDING_PROVIDER` after tables exist needs a drop and re-seed — pgvector cannot mix widths:
 
 ```sql
 DROP TABLE IF EXISTS product_embeddings, document_embeddings, documents CASCADE;
@@ -65,7 +65,7 @@ Text under `h1` becomes `documents.summary` unless you pass `"summary"`. Each `h
 
 ## Evals
 
-Ground truth lives in `evals/datasets/faq_ground_truth.json`. Generate five shopper-style paraphrases per FAQ (uses Ollama or OpenRouter from `.env`):
+Ground truth lives in `evals/datasets/faq_ground_truth.json`. Generate five shopper-style paraphrases per FAQ (uses `LLM_PROVIDER` from `config.py`):
 
 ```bash
 uv run python evals/generate_eval_data.py
@@ -75,11 +75,15 @@ Writes `evals/datasets/faq_eval_synthetic.json`. A tqdm bar advances once per FA
 
 ## Config
 
-See `.env`. Useful flags:
+See `.env` for secrets (`POSTGRES_*`, `OPENAI_API_KEY`, `OPEN_ROUTER_API_KEY`, `GEMINI_API_KEY`). Chat and embedding backends are set in `ecommerce_agent/config.py` (`LLM_PROVIDER`, `EMBEDDING_PROVIDER`) and are not read from `.env`.
 
-- `LOCAL_MODEL=true` — Ollama (`OLLAMA_MODEL`, default `qwen2.5:7b`)
+- `LLM_PROVIDER` — `ollama` | `openrouter` | `openai` (currently `openai`). `LOCAL_MODEL` is derived (`true` only when the provider is `ollama`).
+- `MODEL` — optional env override for the chat model. Defaults: Ollama `qwen2.5:7b`, OpenRouter `nvidia/nemotron-3.5-lightning:free`, OpenAI `gpt-4o-mini`. Provider-specific `OLLAMA_MODEL` / `OPENROUTER_MODEL` / `OPENAI_MODEL` still work as fallbacks.
+- `OPENAI_API_KEY` / `OPEN_ROUTER_API_KEY` — required for those chat backends. Ollama uses a dummy key.
 - `AGENT_TRACING=true` — OpenAI Agents SDK traces
-- `EMBEDDING_PROVIDER=hf` or `gemini` (`GEMINI_API_KEY` required for Gemini). Vector width is fixed when tables are created; do not switch providers without dropping those tables.
+- `EMBEDDING_PROVIDER` — `hf`, `gemini`, or `openai` in `config.py` (currently `gemini`). Needs `GEMINI_API_KEY` or `OPENAI_API_KEY` as required. `EMBEDDING_MODEL` defaults live in `DEFAULT_EMBEDDING_MODELS`: HF `BAAI/bge-m3` (1024-d), Gemini `gemini-embedding-001` (768-d), OpenAI `text-embedding-3-small` (1536-d). `OPENAI_EMBEDDING_MODEL` is still a fallback for OpenAI. A provider/model mismatch raises `ValueError` telling you to check `config.py`. Vector width is fixed when tables are created; do not switch providers without dropping those tables.
+
+Base URLs are constants in `ecommerce_agent/config.py` (`OLLAMA_BASE_URL`, `OPENROUTER_BASE_URL`, `OPENAI_BASE_URL`, `GEMINI_OPENAI_BASE_URL`) with optional env overrides.
 
 ## Layout
 

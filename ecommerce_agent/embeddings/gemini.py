@@ -1,11 +1,12 @@
-import os
-
 import numpy as np
 from openai import OpenAI
 
+from ecommerce_agent.config import (
+    GEMINI_OPENAI_BASE_URL,
+    require_embedding_provider,
+    settings,
+)
 from ecommerce_agent.embeddings.base import EmbeddingProvider
-
-GEMINI_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
 
 class GeminiEmbeddingProvider(EmbeddingProvider):
@@ -13,14 +14,18 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
 
     def __init__(
         self,
-        model_name: str = "gemini-embedding-001",
         api_key: str | None = None,
         embedding_dim: int = 768,
     ):
-        self.model_name = model_name
+        self.model_name = require_embedding_provider("gemini", settings)
         self.embedding_dim = embedding_dim
+        key = api_key or settings.embedding_api_key
+        if not key:
+            raise ValueError(
+                "GEMINI_API_KEY is required for the gemini embedding provider"
+            )
         self._client = OpenAI(
-            api_key=api_key or os.environ["GEMINI_API_KEY"],
+            api_key=key,
             base_url=GEMINI_OPENAI_BASE_URL,
         )
 

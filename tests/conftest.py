@@ -11,7 +11,6 @@ os.environ.setdefault("POSTGRES_PASSWORD", "postgres")
 os.environ.setdefault("POSTGRES_HOST", "localhost")
 os.environ.setdefault("POSTGRES_PORT", "5432")
 os.environ.setdefault("POSTGRES_DB", "pyrolabs-local")
-os.environ.setdefault("LOCAL_MODEL", "true")
 os.environ.setdefault("AGENT_TRACING", "false")
 
 import importlib.util

@@ -11,7 +11,13 @@ from pathlib import Path
 from openai import OpenAI
 from tqdm import tqdm
 
-from ecommerce_agent.config import PROJECT_ROOT, settings
+from ecommerce_agent.config import (
+    OLLAMA_BASE_URL,
+    OPENAI_BASE_URL,
+    OPENROUTER_BASE_URL,
+    PROJECT_ROOT,
+    settings,
+)
 
 QUESTIONS_PER_RECORD = 5
 DEFAULT_INPUT = PROJECT_ROOT / "evals" / "datasets" / "faq_ground_truth.json"
@@ -115,19 +121,25 @@ def expand_records(source: list[dict], llm_rows: list[dict]) -> list[dict]:
 
 
 def _chat_client() -> tuple[OpenAI, str]:
-    if settings.local_model:
+    provider = settings.llm_provider
+    if provider == "openai":
+        if not settings.api_key:
+            raise RuntimeError(
+                "OPENAI_API_KEY is required when LLM_PROVIDER is openai in config.py"
+            )
+        return OpenAI(api_key=settings.api_key, base_url=OPENAI_BASE_URL), settings.model
+    if provider == "ollama":
         return (
-            OpenAI(base_url=settings.ollama_base_url, api_key="ollama"),
-            settings.ollama_model,
+            OpenAI(base_url=OLLAMA_BASE_URL, api_key="ollama"),
+            settings.model,
         )
-    if not settings.open_router_api_key:
-        raise RuntimeError("OPEN_ROUTER_API_KEY is required when LOCAL_MODEL is false")
+    if not settings.api_key:
+        raise RuntimeError(
+            "OPEN_ROUTER_API_KEY is required when LLM_PROVIDER is openrouter in config.py"
+        )
     return (
-        OpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=settings.open_router_api_key,
-        ),
-        settings.openrouter_model,
+        OpenAI(base_url=OPENROUTER_BASE_URL, api_key=settings.api_key),
+        settings.model,
     )
 
 

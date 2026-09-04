@@ -21,7 +21,7 @@ ecommerce-agent/
 │   ├── tools/                    # catalog.py, knowledge.py
 │   ├── retrieval/                # read-only products + documents
 │   ├── ingest/                   # chunking, product/document writes, schema
-│   ├── embeddings/               # lazy HF | Gemini
+│   ├── embeddings/               # lazy HF | Gemini | OpenAI
 │   ├── integrations/google_docs.py
 │   └── jobs/sync_google_docs.py
 ├── static/                       # chat + catalog HTML
@@ -53,7 +53,7 @@ flowchart TB
 
     subgraph AgentPkg["ecommerce_agent.agent"]
         Factory["factory.agent"]
-        LLM["llm: Ollama | OpenRouter"]
+        LLM["llm: Ollama | OpenRouter | OpenAI"]
         Trace["AGENT_TRACING"]
     end
 
@@ -84,7 +84,7 @@ flowchart TB
     Job["jobs.sync_google_docs"]
     Config["config.settings"]
     Engine["db.engine"]
-    Embed["embeddings.get_provider<br/>lazy HF | Gemini"]
+    Embed["embeddings.get_provider<br/>lazy HF | Gemini | OpenAI"]
     PG["PostgreSQL + pgvector"]
 
     ChatUI --> Ask
@@ -208,13 +208,13 @@ The sync job skips ids that start with `file_`. It does not `ALTER` tables.
 
 ## Evals
 
-`evals/datasets/faq_ground_truth.json` holds gold FAQ question/answer pairs. `evals/generate_eval_data.py` calls the same Ollama / OpenRouter settings as the agent, shows a tqdm bar per FAQ, and writes five `synthetic_question` rows per FAQ to `evals/datasets/faq_eval_synthetic.json`. It is not on the ask/ingest path.
+`evals/datasets/faq_ground_truth.json` holds gold FAQ question/answer pairs. `evals/generate_eval_data.py` calls the same LLM provider as the agent (Ollama, OpenRouter, or OpenAI), shows a tqdm bar per FAQ, and writes five `synthetic_question` rows per FAQ to `evals/datasets/faq_eval_synthetic.json`. It is not on the ask/ingest path.
 
 ## Data model and indexes
 
 New databases (`db/init_vector_db.sql` and `ingest.schema.init_db`) use **HNSW**. Existing databases that still have IVFFlat `lists = 100` keep working because retrieval sets `ivfflat.probes = 100` per query. No live `ALTER`.
 
-`embedding VECTOR(...)` width is fixed at `CREATE`. Python `init_db()` uses `provider.embedding_dim` (`hf` / bge-m3: 1024; `gemini`: 768). `db/init_vector_db.sql` is hardcoded `VECTOR(1024)` for HF. Gemini's API returns 3072-d vectors; `GeminiEmbeddingProvider` requests `dimensions=768` and, if the API still returns 3072, truncates and L2-normalizes (Matryoshka). Switching providers after tables exist requires dropping `product_embeddings`, `document_embeddings`, and `documents`.
+`embedding VECTOR(...)` width is fixed at `CREATE`. Python `init_db()` uses `provider.embedding_dim` (`hf` / bge-m3: 1024; `gemini`: 768; `openai` / text-embedding-3-small: 1536). `db/init_vector_db.sql` is hardcoded `VECTOR(1024)` for HF. Gemini's API returns 3072-d vectors; `GeminiEmbeddingProvider` requests `dimensions=768` and, if the API still returns 3072, truncates and L2-normalizes (Matryoshka). Switching providers after tables exist requires dropping `product_embeddings`, `document_embeddings`, and `documents`.
 
 ```mermaid
 erDiagram
@@ -253,16 +253,20 @@ erDiagram
 
 ## Config
 
-`ecommerce_agent.config.settings` (from `.env`):
+`ecommerce_agent.config.settings` reads **secrets** from `.env`. Chat/embedding backends are module constants in `config.py` and are not overridden by the environment.
 
-| Variable | Role |
+| Variable / constant | Role |
 |---|---|
-| `POSTGRES_*` | Database URL |
-| `LOCAL_MODEL` | `true` → Ollama, else OpenRouter |
-| `OLLAMA_MODEL` / `OLLAMA_BASE_URL` | Local model |
-| `OPEN_ROUTER_API_KEY` / `OPENROUTER_MODEL` | Hosted model |
-| `EMBEDDING_PROVIDER` | `hf` (default, 1024-d) or `gemini` (`GEMINI_API_KEY`, stored as 768-d) |
+| `POSTGRES_*` | Database URL (`.env`) |
+| `LLM_PROVIDER` | `config.py` constant: `ollama`, `openrouter`, or `openai` (currently `openai`) |
+| `LOCAL_MODEL` | `config.py` constant derived from `LLM_PROVIDER == "ollama"` |
+| `EMBEDDING_PROVIDER` | `config.py` constant: `hf` (1024-d), `gemini` (768-d), or `openai` (1536-d) (currently `gemini`) |
+| `MODEL` | Optional `.env` chat-model override (`settings.model`). Defaults: Ollama `qwen2.5:7b`, OpenRouter `nvidia/nemotron-3.5-lightning:free`, OpenAI `gpt-4o-mini`. Fallbacks: `OLLAMA_MODEL` / `OPENROUTER_MODEL` / `OPENAI_MODEL` |
+| `OPEN_ROUTER_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` | Secrets in `.env`. Resolved into `settings.api_key` / `settings.embedding_api_key` |
+| `EMBEDDING_MODEL` | Optional `.env` override (`settings.embedding_model`). Defaults in `DEFAULT_EMBEDDING_MODELS`: `BAAI/bge-m3`, `gemini-embedding-001`, `text-embedding-3-small`. Fallback: `OPENAI_EMBEDDING_MODEL`. Using another provider's default model, or constructing a backend that does not match `EMBEDDING_PROVIDER`, raises `ValueError` (`Provider model mismatch, please check your config.py file`) |
 | `GOOGLE_SERVICE_ACCOUNT_FILE` | Defaults to `secrets/google_service_account.json` |
 | `AGENT_TRACING` | `true` enables Agents SDK traces |
+
+Provider base URLs are module constants in `ecommerce_agent/config.py` (`OLLAMA_BASE_URL`, `OPENROUTER_BASE_URL`, `OPENAI_BASE_URL`, `GEMINI_OPENAI_BASE_URL`), each overridable by the same-named env var. They are not Settings fields.
 
 The Hugging Face model loads on first `get_provider()` call, not at process import. `/health` does not embed.

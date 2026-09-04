@@ -1,8 +1,23 @@
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 import numpy as np
+import pytest
 
+from ecommerce_agent.config import DEFAULT_EMBEDDING_MODELS
 from ecommerce_agent.embeddings.gemini import GeminiEmbeddingProvider
+
+
+@pytest.fixture(autouse=True)
+def gemini_settings(monkeypatch):
+    monkeypatch.setattr(
+        "ecommerce_agent.embeddings.gemini.settings",
+        SimpleNamespace(
+            embedding_provider="gemini",
+            embedding_model=DEFAULT_EMBEDDING_MODELS["gemini"],
+            embedding_api_key="test",
+        ),
+    )
 
 
 def _provider_with_data(items: list) -> GeminiEmbeddingProvider:
@@ -50,3 +65,4 @@ def test_embed_truncates_native_3072_to_declared_768():
     np.testing.assert_allclose(result[0], expected)
     kwargs = provider._client.embeddings.create.call_args.kwargs
     assert kwargs["dimensions"] == 768
+    assert kwargs["model"] == DEFAULT_EMBEDDING_MODELS["gemini"]

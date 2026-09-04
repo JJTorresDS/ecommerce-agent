@@ -6,15 +6,16 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
+from ecommerce_agent.config import require_embedding_provider, settings
 from ecommerce_agent.embeddings.base import EmbeddingProvider
 
 
 class HFEmbeddingProvider(EmbeddingProvider):
-    """Local embeddings via sentence-transformers (default: BAAI/bge-m3)."""
+    """Local embeddings via sentence-transformers."""
 
-    def __init__(self, model_name: str = "BAAI/bge-m3"):
-        self.model_name = model_name
-        self._model = SentenceTransformer(model_name)
+    def __init__(self):
+        self.model_name = require_embedding_provider("hf", settings)
+        self._model = SentenceTransformer(self.model_name)
         self.embedding_dim = self._model.get_embedding_dimension()
 
     def embed(self, texts: list[str]) -> np.ndarray:

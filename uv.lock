@@ -537,6 +537,7 @@ dependencies = [
     { name = "sentence-transformers" },
     { name = "sqlalchemy" },
     { name = "torch" },
+    { name = "tqdm" },
     { name = "uvicorn" },
 ]
 
@@ -561,6 +562,7 @@ requires-dist = [
     { name = "sentence-transformers", specifier = ">=5.7.0" },
     { name = "sqlalchemy", specifier = ">=2.0.51" },
     { name = "torch", specifier = ">=2.13.0" },
+    { name = "tqdm", specifier = ">=4.70.0" },
     { name = "uvicorn", specifier = ">=0.52.1" },
 ]
 

@@ -63,6 +63,16 @@ curl -X POST http://localhost:8000/documents/google-doc/structured \
 
 Text under `h1` becomes `documents.summary` unless you pass `"summary"`. Each `h2` plus the text beneath it is embedded as one chunk.
 
+## Evals
+
+Ground truth lives in `evals/datasets/faq_ground_truth.json`. Generate five shopper-style paraphrases per FAQ (uses Ollama or OpenRouter from `.env`):
+
+```bash
+uv run python evals/generate_eval_data.py
+```
+
+Writes `evals/datasets/faq_eval_synthetic.json`. A tqdm bar advances once per FAQ. Optional `--input` / `--output` paths.
+
 ## Config
 
 See `.env`. Useful flags:

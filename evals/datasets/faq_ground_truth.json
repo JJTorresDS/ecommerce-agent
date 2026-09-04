@@ -1,0 +1,89 @@
+{
+	"faq_dataset": [
+	  {
+		"id": 17,
+		"question": "How long does shipping take?",
+		"answer": "Standard shipping takes 3–5 business days; express is 1–2 business days."
+	  },
+	  {
+		"id": 18,
+		"question": "Do you ship internationally?",
+		"answer": "No, we only ship within Argentina."
+	  },
+	  {
+		"id": 19,
+		"question": "How much does shipping cost?",
+		"answer": "Orders over $50 ship free; otherwise a flat $5.99 fee applies."
+	  },
+	  {
+		"id": 20,
+		"question": "Can I track my order?",
+		"answer": "Yes, you'll receive a tracking link by email once your order ships."
+	  },
+	  {
+		"id": 21,
+		"question": "How do I find the right size for my child?",
+		"answer": "Check our size chart — we recommend measuring height and chest rather than going by age, since kids' proportions vary."
+	  },
+	  {
+		"id": 22,
+		"question": "What if the size doesn't fit?",
+		"answer": "Free exchanges within 30 days — just choose a new size at checkout on your return."
+	  },
+	  {
+		"id": 23,
+		"question": "What's your return policy?",
+		"answer": "Unworn items with tags can be returned within 30 days for a full refund."
+	  },
+	  {
+		"id": 24,
+		"question": "Can I return sale items?",
+		"answer": "Sale items are final sale / eligible for store credit only."
+	  },
+	  {
+		"id": 25,
+		"question": "How do I start a return?",
+		"answer": "Use the \"Returns\" link in your order confirmation email, or enter your order number on our returns portal."
+	  },
+	  {
+		"id": 26,
+		"question": "Who pays for return shipping?",
+		"answer": "Returns due to product defects are on us; all other returns are paid by the customer."
+	  },
+	  {
+		"id": 27,
+		"question": "Are your fabrics safe for sensitive skin?",
+		"answer": "Yes — our fabrics are OEKO-TEX certified and free of harsh dyes and chemicals."
+	  },
+	  {
+		"id": 28,
+		"question": "How should I wash these clothes?",
+		"answer": "Machine wash cold, tumble dry low. Check the care label for specific items (some prints are wash-cold-only)."
+	  },
+	  {
+		"id": 29,
+		"question": "What payment methods do you accept?",
+		"answer": "Mecado Pago and Any credit card."
+	  },
+	  {
+		"id": 30,
+		"question": "Can I change or cancel my order after placing it?",
+		"answer": "Orders can be changed within 1 hour of placing them — after that, they're already in fulfillment."
+	  },
+	  {
+		"id": 31,
+		"question": "Do you offer gift cards?",
+		"answer": "Yes, digital gift cards from $25–$200 are available."
+	  },
+	  {
+		"id": 32,
+		"question": "Do I need an account to order?",
+		"answer": "No, guest checkout is available, but an account lets you track orders and save favorites."
+	  },
+	  {
+		"id": 33,
+		"question": "How do I contact customer service?",
+		"answer": "Chat with us here, email support@jonas-demo.com, or call 1-800-JONAS-DEMO, Mon–Fri 9am–6pm."
+	  }
+	]
+  }

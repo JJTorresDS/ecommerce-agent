@@ -27,6 +27,7 @@ ecommerce-agent/
 ├── static/                       # chat + catalog HTML
 ├── db/                           # init_vector_db.sql, seed, download_model
 ├── notebooks/
+├── evals/                        # FAQ ground truth + synthetic eval generator
 ├── tests/
 ├── AGENTS.md                     # TDD + keep README and architecture.md current
 └── secrets/                      # gitignored service account
@@ -204,6 +205,10 @@ flowchart LR
 ```
 
 The sync job skips ids that start with `file_`. It does not `ALTER` tables.
+
+## Evals
+
+`evals/datasets/faq_ground_truth.json` holds gold FAQ question/answer pairs. `evals/generate_eval_data.py` calls the same Ollama / OpenRouter settings as the agent, shows a tqdm bar per FAQ, and writes five `synthetic_question` rows per FAQ to `evals/datasets/faq_eval_synthetic.json`. It is not on the ask/ingest path.
 
 ## Data model and indexes
 

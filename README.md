@@ -1,21 +1,53 @@
 # ecommerce-agent
 
-uv run uvicorn app:app --reload
+Chat UI and tools over a local (Ollama) or OpenRouter model, with a pgvector catalog and knowledge base.
 
-ollama stop qwen2.5:7b
+## Run
 
-para inizliazar la base:
+```bash
+uv run uvicorn ecommerce_agent.api.app:app --reload
+```
 
-docker exec -i postgres-pgvector psql -U postgres -d pyrolabs-local < init.sql
+Open http://localhost:8000/ for the chat UI, http://localhost:8000/ecommerce for the catalog, or http://localhost:8000/docs for the API.
 
-alternative
-uv run python -c "from init.seed_products import main; main()"
+If Postgres runs in Docker, start it first. `get_item_details` and vector search read from that database.
 
-## Running the app
+## Database
 
-If you are using a docker to host your postres db, make sure it is running since the get_item_details tool will return an item from a database.
+```bash
+docker exec -i postgres-pgvector psql -U postgres -d pyrolabs-local < db/init_vector_db.sql
+```
 
-## Pending
+Or:
 
-[ ]- Add traces
-[ ]- Run a daily cron to check if the "updated_at" date of the Google docs in the db are older then the last_modifed from the google dog. If its older, re-embed the document.
+```bash
+uv run python db/seed_products.py
+```
+
+Download the local embedding model once (offline HF after that):
+
+```bash
+uv run python db/download_model.py
+```
+
+## Google Doc sync
+
+Daily job: if Drive `modifiedTime` is newer than `documents.updated_at` / `embedded_at`, re-embed the doc.
+
+```bash
+uv run python -m ecommerce_agent.jobs.sync_google_docs
+```
+
+Enable the Google Drive API and share the doc with the service account. Credentials default to `secrets/google_service_account.json` (`GOOGLE_SERVICE_ACCOUNT_FILE`).
+
+## Config
+
+See `.env`. Useful flags:
+
+- `LOCAL_MODEL=true` — Ollama (`OLLAMA_MODEL`, default `qwen2.5:7b`)
+- `AGENT_TRACING=true` — OpenAI Agents SDK traces
+- `EMBEDDING_PROVIDER=hf` or `gemini`
+
+## Layout
+
+Runtime Python lives in `ecommerce_agent/`. As-built diagram: `architecture.md`. Proposal that this tree follows: `architecture_proposal.md`.

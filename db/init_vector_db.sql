@@ -1,4 +1,3 @@
--- Runs automatically on first container startup (via docker-entrypoint-initdb.d)
 -- Safe to re-run against an existing database: if any of these tables already
 -- exist, this script stops instead of dropping or altering them. Drop the
 -- tables yourself if you want to recreate the schema.
@@ -35,13 +34,9 @@ CREATE TABLE product_embeddings (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Speeds up nearest-neighbor search as the table grows.
--- ivfflat needs at least a few hundred rows before it's useful;
--- fine to leave this in from the start.
 CREATE INDEX product_embeddings_embedding_idx
     ON product_embeddings
-    USING ivfflat (embedding vector_cosine_ops)
-    WITH (lists = 100);
+    USING hnsw (embedding vector_cosine_ops);
 
 CREATE TABLE documents (
     id TEXT PRIMARY KEY,
@@ -66,5 +61,4 @@ CREATE TABLE document_embeddings (
 
 CREATE INDEX document_embeddings_embedding_idx
     ON document_embeddings
-    USING ivfflat (embedding vector_cosine_ops)
-    WITH (lists = 100);
+    USING hnsw (embedding vector_cosine_ops);

@@ -6,15 +6,11 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-from embeddings.base import EmbeddingProvider
+from ecommerce_agent.embeddings.base import EmbeddingProvider
 
 
 class HFEmbeddingProvider(EmbeddingProvider):
-    """Local embeddings via sentence-transformers.
-
-    Defaults to BAAI/bge-m3, matching the original embeddings_hf.py.
-    The model is loaded once, at instantiation, and reused across calls.
-    """
+    """Local embeddings via sentence-transformers (default: BAAI/bge-m3)."""
 
     def __init__(self, model_name: str = "BAAI/bge-m3"):
         self.model_name = model_name
@@ -23,7 +19,3 @@ class HFEmbeddingProvider(EmbeddingProvider):
 
     def embed(self, texts: list[str]) -> np.ndarray:
         return self._model.encode(texts, normalize_embeddings=True, batch_size=32)
-
-    # similarity() is inherited as-is from EmbeddingProvider: encode()
-    # is called with normalize_embeddings=True above, so a plain dot
-    # product is a valid cosine similarity here.

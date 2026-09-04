@@ -1,5 +1,7 @@
 # Application architecture
 
+As-built after the `architecture_proposal.md` package split.
+
 ## System overview
 
 ```mermaid
@@ -10,41 +12,39 @@ flowchart TB
         Curl["curl / OpenAPI<br/>GET /docs"]
     end
 
-    subgraph FastAPI["FastAPI — app.py"]
+    subgraph FastAPI["ecommerce_agent.api"]
         Ask["POST /ask"]
         Upload["POST /products/upload"]
         GDocEP["POST /documents/google-doc"]
+        Health["GET /health"]
     end
 
-    subgraph AgentRuntime["Agent runtime"]
-        Runner["agents.Runner"]
-        Agent["ecommerce_agent"]
+    subgraph AgentRuntime["ecommerce_agent.agent"]
+        Factory["factory.build_agent"]
+        TList["list_knowledgebase_documents"]
         TSearch["search_products"]
         TSku["get_item_details"]
         TFaq["search_faq_knowledgebase"]
     end
 
     subgraph LLM["LLM — LOCAL_MODEL"]
-        Ollama["Ollama<br/>qwen2.5:7b"]
+        Ollama["Ollama"]
         OpenRouter["OpenRouter"]
     end
 
-    subgraph WritePath["Write path — embeddings/ingest.py"]
-        UpsertP["upsert_products_batch"]
-        UpsertD["upsert_document<br/>chunk + embed"]
-        Reader["google_doc_reader"]
+    subgraph WritePath["ecommerce_agent.ingest"]
+        UpsertP["products.upsert"]
+        UpsertD["documents.upsert"]
+        Chunk["chunking"]
     end
 
-    subgraph ReadPath["Read path — vector_store.py"]
-        SearchP["search_products"]
-        GetSku["get_product_by_sku"]
-        SearchD["search_documents"]
-        ListD["list_documents"]
+    subgraph ReadPath["ecommerce_agent.retrieval"]
+        SearchP["products.search / get_by_sku"]
+        SearchD["documents.list / search"]
     end
 
-    subgraph Embed["Embedding provider"]
-        HF["Hugging Face bge-m3"]
-        Gemini["Gemini"]
+    subgraph Embed["embeddings — lazy HF | Gemini"]
+        Provider["get_provider()"]
     end
 
     subgraph Store["PostgreSQL + pgvector"]
@@ -53,7 +53,8 @@ flowchart TB
         Chunks["document_embeddings"]
     end
 
-    GDocs["Google Docs API"]
+    GDocs["Google Docs + Drive"]
+    Job["jobs.sync_google_docs"]
 
     ChatUI --> Ask
     Curl --> Ask
@@ -61,28 +62,28 @@ flowchart TB
     Curl --> GDocEP
     CatalogUI -.-> Upload
 
-    Ask --> Runner --> Agent
-    Agent -->|"LOCAL_MODEL=true"| Ollama
-    Agent -->|"LOCAL_MODEL=false"| OpenRouter
-    Agent --> TSearch & TSku & TFaq
+    Ask --> Factory
+    Factory -->|"LOCAL_MODEL=true"| Ollama
+    Factory -->|"LOCAL_MODEL=false"| OpenRouter
+    Factory --> TList & TFaq & TSearch & TSku
 
     TSearch --> SearchP
-    TSku --> GetSku
+    TSku --> SearchP
+    TList --> SearchD
     TFaq --> SearchD
-    TFaq -.-> ListD
 
     Upload --> UpsertP
-    GDocEP --> Reader --> GDocs
-    Reader --> UpsertD
+    GDocEP --> GDocs --> UpsertD
+    UpsertD --> Chunk
+    Job --> GDocs
+    Job --> UpsertD
 
-    SearchP & GetSku --> Products
-    SearchD & ListD --> Docs & Chunks
+    SearchP --> Products
+    SearchD --> Docs & Chunks
     UpsertP --> Products
     UpsertD --> Docs & Chunks
 
-    SearchP & SearchD & UpsertP & UpsertD --> Embed
-    Embed --> HF
-    Embed --> Gemini
+    SearchP & SearchD & UpsertP & UpsertD --> Provider
 ```
 
 ## Ask flow
@@ -91,11 +92,11 @@ flowchart TB
 sequenceDiagram
     actor User
     participant UI as Chat UI / POST /ask
-    participant App as app.py
+    participant App as api.routes.ask
     participant Agent as ecommerce_agent
     participant LLM as Ollama or OpenRouter
-    participant Tools as tools.py
-    participant VS as vector_store.py
+    participant List as list_knowledgebase_documents
+    participant Search as search_faq_knowledgebase
     participant DB as pgvector
 
     User->>UI: question
@@ -104,14 +105,15 @@ sequenceDiagram
 
     loop until final answer
         Agent->>LLM: messages + tool schemas
-        alt tool call
-            LLM-->>Agent: tool name + args
-            Agent->>Tools: search_products / get_item_details / search_faq_knowledgebase
-            Tools->>VS: cosine search or SKU lookup
-            VS->>DB: embedding <=> query vector
-            DB-->>VS: top-k rows
-            VS-->>Tools: products or FAQ chunks
-            Tools-->>Agent: tool result
+        alt knowledge-base question
+            LLM->>List: no args
+            List->>DB: summaries
+            List-->>LLM: catalog
+            LLM->>Search: query + document_id
+            Search->>DB: cosine search on that doc
+            Search-->>LLM: passages
+        else product question
+            LLM->>Agent: search_products / get_item_details
         else final text
             LLM-->>Agent: final_output
         end
@@ -127,20 +129,21 @@ sequenceDiagram
 flowchart LR
     subgraph Products["Product catalog"]
         CSV["CSV sku, description"]
-        Seed["init/seed_products.py"]
+        Seed["db/seed_products.py"]
         UP["POST /products/upload"]
-        Batch["upsert_products_batch"]
+        Batch["ingest.products"]
         PE["product_embeddings"]
     end
 
     subgraph Knowledge["FAQ / knowledge base"]
         URL["Google Doc URL"]
         GD["POST /documents/google-doc"]
-        Fetch["get_doc title + text"]
-        Chunk["chunk_chars<br/>default 3200 / FAQ 1200–1400"]
-        UD["upsert_document"]
-        DT["documents<br/>id, filename, summary"]
-        DE["document_embeddings<br/>chunks"]
+        Fetch["integrations.google_docs"]
+        Chunk["chunk_chars default 3200"]
+        UD["ingest.documents"]
+        DT["documents"]
+        DE["document_embeddings"]
+        Cron["python -m ecommerce_agent.jobs.sync_google_docs"]
     end
 
     CSV --> UP --> Batch
@@ -148,6 +151,7 @@ flowchart LR
     Batch --> PE
 
     URL --> GD --> Fetch --> Chunk --> UD
+    Cron --> Fetch
     UD --> DT
     UD --> DE
 ```

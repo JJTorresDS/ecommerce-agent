@@ -3,6 +3,8 @@ def test_chat_ui(client):
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "<html" in response.text.lower()
+    assert "session_id" in response.text
+    assert "sessionStorage" in response.text
 
 
 def test_ecommerce_catalog_ui(client):

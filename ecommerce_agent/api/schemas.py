@@ -7,6 +7,10 @@ _DOCUMENT_URL_EXAMPLES = [
 
 class Question(BaseModel):
     question: str
+    session_id: str | None = Field(
+        default=None,
+        description="Optional chat session id so Langfuse can group turns.",
+    )
 
 
 class Answer(BaseModel):

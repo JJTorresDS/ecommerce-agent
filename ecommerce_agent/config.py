@@ -30,6 +30,10 @@ LLM_PROVIDER = "openai"
 EMBEDDING_PROVIDER = "gemini"
 LOCAL_MODEL = LLM_PROVIDER == "ollama"
 
+LANGFUSE_TRACING = True
+LANGFUSE_ENVIRONMENT = "development"
+LANGFUSE_BASE_URL = "https://cloud.langfuse.com"
+
 DEFAULT_EMBEDDING_MODELS = {
     "hf": "BAAI/bge-m3",
     "gemini": "gemini-embedding-001",
@@ -115,12 +119,22 @@ class Settings:
     embedding_api_key: str | None
     google_service_account_file: str
     agent_tracing: bool
+    langfuse_public_key: str | None
+    langfuse_secret_key: str | None
 
     @property
     def database_url(self) -> str:
         return (
             f"postgresql+psycopg://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
+
+    @property
+    def langfuse_enabled(self) -> bool:
+        return (
+            LANGFUSE_TRACING
+            and bool(self.langfuse_public_key)
+            and bool(self.langfuse_secret_key)
         )
 
 
@@ -144,6 +158,8 @@ def _load_settings() -> Settings:
             str(PROJECT_ROOT / "secrets" / "google_service_account.json"),
         ),
         agent_tracing=_bool("AGENT_TRACING", default=False),
+        langfuse_public_key=os.getenv("LANGFUSE_PUBLIC_KEY") or None,
+        langfuse_secret_key=os.getenv("LANGFUSE_SECRET_KEY") or None,
     )
 
 

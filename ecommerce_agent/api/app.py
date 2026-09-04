@@ -1,5 +1,7 @@
 """FastAPI application factory."""
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
@@ -9,8 +11,16 @@ from ecommerce_agent.config import PROJECT_ROOT
 STATIC_DIR = PROJECT_ROOT / "static"
 
 
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    yield
+    from ecommerce_agent.agent.tracing import flush_tracing
+
+    flush_tracing()
+
+
 def create_app() -> FastAPI:
-    app = FastAPI(title="Local Agent API")
+    app = FastAPI(title="Local Agent API", lifespan=lifespan)
     app.include_router(ask.router)
     app.include_router(health.router)
     app.include_router(products.router)

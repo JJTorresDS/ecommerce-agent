@@ -4,6 +4,8 @@ from ecommerce_agent.config import (
     DEFAULT_EMBEDDING_MODELS,
     EMBEDDING_PROVIDER,
     GEMINI_OPENAI_BASE_URL,
+    LANGFUSE_ENVIRONMENT,
+    LANGFUSE_TRACING,
     LLM_PROVIDER,
     LOCAL_MODEL,
     OLLAMA_BASE_URL,
@@ -71,6 +73,23 @@ def test_load_settings_reads_secrets_and_model_from_env(monkeypatch):
     assert loaded.embedding_provider == EMBEDDING_PROVIDER
     assert loaded.embedding_model == DEFAULT_EMBEDDING_MODELS[EMBEDDING_PROVIDER]
     assert loaded.embedding_api_key == "gemini-test"
+
+
+def test_langfuse_tracing_is_a_config_constant():
+    assert LANGFUSE_TRACING is True
+    assert LANGFUSE_ENVIRONMENT == "development"
+
+
+def test_langfuse_enabled_requires_keys_from_env(monkeypatch):
+    monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "")
+    monkeypatch.setenv("LANGFUSE_SECRET_KEY", "")
+    assert _load_settings().langfuse_enabled is False
+
+    monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-lf-test")
+    monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-lf-test")
+    loaded = _load_settings()
+    assert loaded.langfuse_enabled is True
+    assert loaded.langfuse_public_key == "pk-lf-test"
 
 
 def test_load_settings_rejects_embedding_model_for_other_provider(monkeypatch):

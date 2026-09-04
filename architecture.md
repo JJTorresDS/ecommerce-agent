@@ -17,7 +17,7 @@ ecommerce-agent/
 │   │   ├── app.py                # FastAPI factory
 │   │   ├── schemas.py
 │   │   └── routes/               # ask, products, documents, health
-│   ├── agent/                    # llm, instructions.md, hooks, factory
+│   ├── agent/                    # llm, tracing (Langfuse), instructions.md, hooks, factory
 │   ├── tools/                    # catalog.py, knowledge.py
 │   ├── retrieval/                # read-only products + documents
 │   ├── ingest/                   # chunking, product/document writes, schema
@@ -54,7 +54,7 @@ flowchart TB
     subgraph AgentPkg["ecommerce_agent.agent"]
         Factory["factory.agent"]
         LLM["llm: Ollama | OpenRouter | OpenAI"]
-        Trace["AGENT_TRACING"]
+        Trace["Langfuse + OpenInference"]
     end
 
     subgraph ToolsPkg["ecommerce_agent.tools"]
@@ -86,6 +86,7 @@ flowchart TB
     Engine["db.engine"]
     Embed["embeddings.get_provider<br/>lazy HF | Gemini | OpenAI"]
     PG["PostgreSQL + pgvector"]
+    Langfuse["Langfuse traces"]
 
     ChatUI --> Ask
     CatalogUI --> Upload
@@ -94,6 +95,7 @@ flowchart TB
     Ask --> Factory
     Factory --> LLM
     Factory --> Trace
+    Trace --> Langfuse
     Factory --> TList & TFaq & TSearch & TSku
 
     TList --> RDocs
@@ -263,9 +265,12 @@ erDiagram
 | `EMBEDDING_PROVIDER` | `config.py` constant: `hf` (1024-d), `gemini` (768-d), or `openai` (1536-d) (currently `gemini`) |
 | `MODEL` | Optional `.env` chat-model override (`settings.model`). Defaults: Ollama `qwen2.5:7b`, OpenRouter `nvidia/nemotron-3.5-lightning:free`, OpenAI `gpt-4o-mini`. Fallbacks: `OLLAMA_MODEL` / `OPENROUTER_MODEL` / `OPENAI_MODEL` |
 | `OPEN_ROUTER_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` | Secrets in `.env`. Resolved into `settings.api_key` / `settings.embedding_api_key` |
+| `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | Secrets in `.env`. Tracing is on when `LANGFUSE_TRACING` is true in `config.py` and both keys are set (`settings.langfuse_enabled`) |
+| `LANGFUSE_BASE_URL` | Optional `.env` host (EU `https://cloud.langfuse.com`, US `https://us.cloud.langfuse.com`). Fallback constant `LANGFUSE_BASE_URL` in `config.py` |
+| `LANGFUSE_ENVIRONMENT` | `config.py` constant (`development`) sent as `LANGFUSE_TRACING_ENVIRONMENT` |
 | `EMBEDDING_MODEL` | Optional `.env` override (`settings.embedding_model`). Defaults in `DEFAULT_EMBEDDING_MODELS`: `BAAI/bge-m3`, `gemini-embedding-001`, `text-embedding-3-small`. Fallback: `OPENAI_EMBEDDING_MODEL`. Using another provider's default model, or constructing a backend that does not match `EMBEDDING_PROVIDER`, raises `ValueError` (`Provider model mismatch, please check your config.py file`) |
 | `GOOGLE_SERVICE_ACCOUNT_FILE` | Defaults to `secrets/google_service_account.json` |
-| `AGENT_TRACING` | `true` enables Agents SDK traces |
+| `AGENT_TRACING` | `true` enables OpenAI Agents SDK platform traces (separate from Langfuse) |
 
 Provider base URLs are module constants in `ecommerce_agent/config.py` (`OLLAMA_BASE_URL`, `OPENROUTER_BASE_URL`, `OPENAI_BASE_URL`, `GEMINI_OPENAI_BASE_URL`), each overridable by the same-named env var. They are not Settings fields.
 

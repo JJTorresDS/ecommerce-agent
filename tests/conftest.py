@@ -12,6 +12,9 @@ os.environ.setdefault("POSTGRES_HOST", "localhost")
 os.environ.setdefault("POSTGRES_PORT", "5432")
 os.environ.setdefault("POSTGRES_DB", "pyrolabs-local")
 os.environ.setdefault("AGENT_TRACING", "false")
+# Blank Langfuse keys before importing the app so tests never export traces.
+os.environ["LANGFUSE_PUBLIC_KEY"] = ""
+os.environ["LANGFUSE_SECRET_KEY"] = ""
 
 import importlib.util
 from pathlib import Path

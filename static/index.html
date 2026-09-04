@@ -118,6 +118,16 @@
     const questionInput = document.getElementById('question');
     const askBtn = document.getElementById('askBtn');
 
+    function chatSessionId() {
+      const key = 'ecommerce-agent-session-id';
+      let id = sessionStorage.getItem(key);
+      if (!id) {
+        id = crypto.randomUUID();
+        sessionStorage.setItem(key, id);
+      }
+      return id;
+    }
+
     function addBubble(text, sender, isThinking = false) {
       const div = document.createElement('div');
       div.className = 'bubble ' + sender + (isThinking ? ' thinking' : '');
@@ -142,7 +152,7 @@
         const res = await fetch('/ask', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question })
+          body: JSON.stringify({ question, session_id: chatSessionId() })
         });
         if (!res.ok) throw new Error('Request failed: ' + res.status);
         const data = await res.json();

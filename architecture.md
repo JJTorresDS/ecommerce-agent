@@ -17,7 +17,7 @@ ecommerce-agent/
 │   │   ├── app.py                # FastAPI factory
 │   │   ├── schemas.py
 │   │   └── routes/               # ask, products, documents, health
-│   ├── agent/                    # llm, instructions, hooks, factory
+│   ├── agent/                    # llm, instructions.md, hooks, factory
 │   ├── tools/                    # catalog.py, knowledge.py
 │   ├── retrieval/                # read-only products + documents
 │   ├── ingest/                   # chunking, product/document writes, schema
@@ -27,6 +27,8 @@ ecommerce-agent/
 ├── static/                       # chat + catalog HTML
 ├── db/                           # init_vector_db.sql, seed, download_model
 ├── notebooks/
+├── tests/
+├── AGENTS.md                     # TDD + keep README and architecture.md current
 └── secrets/                      # gitignored service account
 ```
 

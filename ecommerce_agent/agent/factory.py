@@ -1,10 +1,15 @@
+from pathlib import Path
+
 from agents import Agent, set_tracing_disabled
 
 from ecommerce_agent.agent.hooks import PrintToolHooks
-from ecommerce_agent.agent.instructions import INSTRUCTIONS
 from ecommerce_agent.agent.llm import build_model
 from ecommerce_agent.config import settings
 from ecommerce_agent.tools import AGENT_TOOLS
+
+INSTRUCTIONS = (
+    Path(__file__).with_name("instructions.md").read_text(encoding="utf-8").strip()
+)
 
 set_tracing_disabled(not settings.agent_tracing)
 

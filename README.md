@@ -50,4 +50,4 @@ See `.env`. Useful flags:
 
 ## Layout
 
-Runtime Python lives in `ecommerce_agent/`. As-built diagram: `architecture.md`. Proposal that this tree follows: `architecture_proposal.md`.
+Runtime Python lives in `ecommerce_agent/`. Tests live in `tests/` (`uv run pytest`). As-built diagram: `architecture.md`. Agent workflow (TDD, docs): `AGENTS.md`. Proposal that this tree follows: `architecture_proposal.md`.

@@ -17,4 +17,5 @@ If you are using a docker to host your postres db, make sure it is running since
 
 ## Pending
 
-[ ]- Test embedding the same document
+[ ]- Add traces
+[ ]- Run a daily cron to check if the "updated_at" date of the Google docs in the db are older then the last_modifed from the google dog. If its older, re-embed the document.

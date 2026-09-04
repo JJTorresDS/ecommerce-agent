@@ -62,16 +62,24 @@ def get_client() -> Langfuse:
 
 
 def setup_tracing() -> None:
-    """Instrument Agents SDK runs and send them to Langfuse when keys are set."""
+    """Instrument Agents SDK runs and send them to Langfuse when keys are set.
+
+    OpenInference records tool and generation spans through the Agents SDK
+    tracing processors, so that tracing must stay enabled. The Langfuse
+    client is created first so those spans export on Langfuse's tracer.
+    """
     global _instrumented
-    set_tracing_disabled(not settings.agent_tracing)
-    if not settings.langfuse_enabled or _instrumented:
+    if settings.langfuse_enabled:
+        set_tracing_disabled(False)
+        if _instrumented:
+            return
+        os.environ.setdefault("LANGFUSE_TRACING_ENVIRONMENT", LANGFUSE_ENVIRONMENT)
+        get_client()
+        OpenAIAgentsInstrumentor().instrument()
+        _instrumented = True
         return
 
-    os.environ.setdefault("LANGFUSE_TRACING_ENVIRONMENT", LANGFUSE_ENVIRONMENT)
-    OpenAIAgentsInstrumentor().instrument()
-    get_client()
-    _instrumented = True
+    set_tracing_disabled(not settings.agent_tracing)
 
 
 def flush_tracing() -> None:

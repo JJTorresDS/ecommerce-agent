@@ -5,8 +5,10 @@ Chat UI and tools over Ollama, OpenRouter, or OpenAI, with a pgvector catalog an
 ## Run
 
 ```bash
-uv run uvicorn ecommerce_agent.api.app:app --reload
+make run_app
 ```
+
+Same as `uv run uvicorn ecommerce_agent.api.app:app --reload`.
 
 Open http://localhost:8000/ for the chat UI, http://localhost:8000/ecommerce for the catalog, or http://localhost:8000/docs for the API.
 
@@ -80,7 +82,7 @@ See `.env` for secrets (`POSTGRES_*`, `OPENAI_API_KEY`, `OPEN_ROUTER_API_KEY`, `
 - `LLM_PROVIDER` — `ollama` | `openrouter` | `openai` (currently `openai`). `LOCAL_MODEL` is derived (`true` only when the provider is `ollama`).
 - `MODEL` — optional env override for the chat model. Defaults: Ollama `qwen2.5:7b`, OpenRouter `nvidia/nemotron-3.5-lightning:free`, OpenAI `gpt-4o-mini`. Provider-specific `OLLAMA_MODEL` / `OPENROUTER_MODEL` / `OPENAI_MODEL` still work as fallbacks.
 - `OPENAI_API_KEY` / `OPEN_ROUTER_API_KEY` — required for those chat backends. Ollama uses a dummy key.
-- `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` — Langfuse tracing for `POST /ask` (OpenAI Agents SDK via OpenInference). Enabled when `LANGFUSE_TRACING` is true in `config.py` and both keys are set. Optional `LANGFUSE_BASE_URL` (EU default `https://cloud.langfuse.com`; US is `https://us.cloud.langfuse.com`). Chat turns send `session_id` so conversations group in Langfuse Sessions.
+- `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` — Langfuse tracing for `POST /ask` (OpenAI Agents SDK via OpenInference). Enabled when `LANGFUSE_TRACING` is true in `config.py` and both keys are set. Optional `LANGFUSE_BASE_URL` (EU default `https://cloud.langfuse.com`; US is `https://us.cloud.langfuse.com`). Chat turns send `session_id` so conversations group in Langfuse Sessions. Agents SDK tracing stays on so tool calls and generations nest under the `ask` span.
 - `AGENT_TRACING=true` — OpenAI Agents SDK traces (separate from Langfuse; off by default)
 - `EMBEDDING_PROVIDER` — `hf`, `gemini`, or `openai` in `config.py` (currently `gemini`). Needs `GEMINI_API_KEY` or `OPENAI_API_KEY` as required. `EMBEDDING_MODEL` defaults live in `DEFAULT_EMBEDDING_MODELS`: HF `BAAI/bge-m3` (1024-d), Gemini `gemini-embedding-001` (768-d), OpenAI `text-embedding-3-small` (1536-d). `OPENAI_EMBEDDING_MODEL` is still a fallback for OpenAI. A provider/model mismatch raises `ValueError` telling you to check `config.py`. Vector width is fixed when tables are created; do not switch providers without dropping those tables.
 

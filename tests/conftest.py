@@ -34,6 +34,19 @@ FAQ_TEXT = (
     "How do I contact customer service? Chat with us here, "
     "email support@jonas-demo.com, or call.\n"
 )
+FAQ_STRUCTURED_TEXT = (
+    "# Frequently Asked Questions\n"
+    "FAQ covering shipping, returns, and customer support.\n"
+    "\n"
+    "## How do I contact customer service?\n"
+    "Chat with us here, email support@jonas-demo.com, or call.\n"
+    "\n"
+    "## Do you accept credit cards\n"
+    "Yes\n"
+    "\n"
+    "## Are you opened on holidays\n"
+    "Loremp ipsum\n"
+)
 
 
 def _load_dummy_products() -> list[dict]:

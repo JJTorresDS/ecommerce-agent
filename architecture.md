@@ -46,6 +46,7 @@ flowchart TB
         Ask["POST /ask"]
         Upload["POST /products/upload"]
         GDocEP["POST /documents/google-doc"]
+        GDocStruct["POST /documents/google-doc/structured"]
         Health["GET /health"]
     end
 
@@ -70,12 +71,12 @@ flowchart TB
     subgraph IngestPkg["ingest — write only"]
         ParseCSV["parse_products_csv"]
         IProd["products.upsert"]
-        IDocs["documents.upsert"]
+        IDocs["upsert_document / structured"]
         Chunk["chunking"]
     end
 
     subgraph Integrations["integrations.google_docs"]
-        Fetch["title + text"]
+        Fetch["title + markdown headings"]
         Drive["Drive modifiedTime"]
     end
 
@@ -87,7 +88,7 @@ flowchart TB
 
     ChatUI --> Ask
     CatalogUI --> Upload
-    OpenAPI --> Ask & Upload & GDocEP & Health
+    OpenAPI --> Ask & Upload & GDocEP & GDocStruct & Health
 
     Ask --> Factory
     Factory --> LLM
@@ -101,6 +102,7 @@ flowchart TB
 
     Upload --> ParseCSV --> IProd
     GDocEP --> Fetch --> IDocs
+    GDocStruct --> Fetch
     IDocs --> Chunk
     Job --> Drive
     Job --> Fetch
@@ -163,7 +165,11 @@ sequenceDiagram
 
 ## Ingest and sync
 
-Google Doc **id** is `documents.id`. The Doc **title** is `filename`. Optional `summary` is what the LLM reads before searching. Optional `chunk_chars`: omit for OpenAI File Search default (3200 chars, 50% overlap); FAQ pages 1200–1400; contracts ~3200.
+Google Doc **id** is `documents.id`. The Doc **title** is `filename`. Optional `summary` is what the LLM reads before searching.
+
+`POST /documents/google-doc` and the sync job call `upsert_document`, which splits on `chunk_chars` (omit for OpenAI File Search default: 3200 chars, 50% overlap; FAQ pages 1200–1400; contracts ~3200).
+
+`POST /documents/google-doc/structured` calls `upsert_documents_structured` with `summary_tag` / `question_tag` (`h1`, `h2`, …). Text under the first summary heading is stored on `documents.summary` unless the caller passes `summary`. Each question heading plus the text beneath it is one embedded chunk. `get_doc` turns Google Docs `HEADING_N` styles into ATX markdown (`#`, `##`) so those tags match.
 
 ```mermaid
 flowchart LR
@@ -178,6 +184,7 @@ flowchart LR
     subgraph KB["Knowledge base"]
         URL["Google Doc URL"]
         GD["POST /documents/google-doc"]
+        GDS["POST /documents/google-doc/structured"]
         GDocs["Docs API + Drive"]
         UD["ingest.documents"]
         DT["documents"]
@@ -190,6 +197,7 @@ flowchart LR
     Batch --> PE
 
     URL --> GD --> GDocs --> UD
+    URL --> GDS --> GDocs
     Cron -->|"re-embed if Drive newer than updated_at / embedded_at"| GDocs
     UD --> DT
     UD --> DE

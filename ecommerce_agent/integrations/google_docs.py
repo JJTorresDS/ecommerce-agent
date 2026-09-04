@@ -18,6 +18,14 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive.metadata.readonly",
 ]
 _GDOC_ID_RE = re.compile(r"/document/d/([a-zA-Z0-9_-]+)")
+_HEADING_MARKDOWN = {
+    "HEADING_1": "#",
+    "HEADING_2": "##",
+    "HEADING_3": "###",
+    "HEADING_4": "####",
+    "HEADING_5": "#####",
+    "HEADING_6": "######",
+}
 
 
 def google_doc_id_from_url(url: str) -> str | None:
@@ -34,28 +42,45 @@ def _credentials(creds_path: str | None = None):
     )
 
 
-def get_doc(document_id: str, creds_path: str | None = None) -> tuple[str, str]:
-    """Fetch a Google Doc and return `(title, plain text)`."""
-    credentials = _credentials(creds_path)
-    service = build("docs", "v1", credentials=credentials)
-    doc = service.documents().get(documentId=document_id).execute()
+def _paragraph_text(paragraph: dict) -> str:
+    parts = []
+    for run in paragraph.get("elements", []):
+        text_run = run.get("textRun")
+        if text_run and "content" in text_run:
+            parts.append(text_run["content"])
+    return "".join(parts)
 
+
+def doc_body_to_text(body: dict) -> str:
+    """Flatten a Google Docs `body` to text, with ATX headings for HEADING_N."""
     text_parts = []
-    for element in doc.get("body", {}).get("content", []):
+    for element in body.get("content", []):
         paragraph = element.get("paragraph")
         if not paragraph:
             continue
-        for run in paragraph.get("elements", []):
-            text_run = run.get("textRun")
-            if text_run and "content" in text_run:
-                text_parts.append(text_run["content"])
+        text = _paragraph_text(paragraph)
+        if not text:
+            continue
+        style = paragraph.get("paragraphStyle", {}).get("namedStyleType")
+        prefix = _HEADING_MARKDOWN.get(style)
+        if prefix:
+            newline = "\n" if text.endswith("\n") else ""
+            text = f"{prefix} {text.rstrip('\n')}{newline}"
+        text_parts.append(text)
+    return "".join(text_parts)
 
+
+def get_doc(document_id: str, creds_path: str | None = None) -> tuple[str, str]:
+    """Fetch a Google Doc and return `(title, text)` with markdown headings."""
+    credentials = _credentials(creds_path)
+    service = build("docs", "v1", credentials=credentials)
+    doc = service.documents().get(documentId=document_id).execute()
     title = (doc.get("title") or "").strip()
-    return title, "".join(text_parts)
+    return title, doc_body_to_text(doc.get("body", {}))
 
 
 def get_doc_text(document_id: str, creds_path: str | None = None) -> str:
-    """Fetch a Google Doc and return its plain text content."""
+    """Fetch a Google Doc and return its text (ATX headings for HEADING_N)."""
     _, text = get_doc(document_id, creds_path)
     return text
 
@@ -67,16 +92,7 @@ def get_doc_text_from_json_string(document_id: str, key_json: str) -> str:
     )
     service = build("docs", "v1", credentials=credentials)
     doc = service.documents().get(documentId=document_id).execute()
-    text_parts = []
-    for element in doc.get("body", {}).get("content", []):
-        paragraph = element.get("paragraph")
-        if not paragraph:
-            continue
-        for run in paragraph.get("elements", []):
-            text_run = run.get("textRun")
-            if text_run and "content" in text_run:
-                text_parts.append(text_run["content"])
-    return "".join(text_parts)
+    return doc_body_to_text(doc.get("body", {}))
 
 
 def get_doc_modified_time(

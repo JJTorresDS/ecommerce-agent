@@ -46,6 +46,23 @@ uv run python -m ecommerce_agent.jobs.sync_google_docs
 
 Enable the Google Drive API and share the doc with the service account. Credentials default to `secrets/google_service_account.json` (`GOOGLE_SERVICE_ACCOUNT_FILE`).
 
+Two ingest endpoints:
+
+- `POST /documents/google-doc` — character windows (`chunk_chars`). Use for contracts and long-form docs.
+- `POST /documents/google-doc/structured` — heading tags. Use for FAQs with Heading 1 / Heading 2 styles.
+
+```bash
+curl -X POST http://localhost:8000/documents/google-doc/structured \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "document_url": "https://docs.google.com/document/d/1FlKHKxwltF_2S9ADmkfT3B0ajapSMrVKYWRUXf13mno/edit",
+    "summary_tag": "h1",
+    "question_tag": "h2"
+  }'
+```
+
+Text under `h1` becomes `documents.summary` unless you pass `"summary"`. Each `h2` plus the text beneath it is embedded as one chunk.
+
 ## Config
 
 See `.env`. Useful flags:

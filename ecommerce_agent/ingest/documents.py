@@ -9,7 +9,11 @@ from sqlalchemy.orm import Session
 
 from ecommerce_agent.db import engine
 from ecommerce_agent.embeddings import get_provider
-from ecommerce_agent.ingest.chunking import DEFAULT_CHUNK_CHARS, chunk_text
+from ecommerce_agent.ingest.chunking import (
+    DEFAULT_CHUNK_CHARS,
+    chunk_text,
+    parse_structured_document,
+)
 
 
 def upsert_document(
@@ -18,17 +22,23 @@ def upsert_document(
     document_id: str | None = None,
     summary: str | None = None,
     chunk_chars: int | None = None,
+    chunks: list[str] | None = None,
 ) -> dict:
     """Insert or replace a document and embed its chunks.
 
     Re-uploading the same `document_id` (or `filename` when no id is
     given) replaces the previous file and its chunks. Pass `document_id`
-    to use a stable identifier such as a Google Doc ID.
+    to use a stable identifier such as a Google Doc ID. Pass `chunks` to
+    skip character-window splitting (used by structured heading ingest).
     """
     provider = get_provider()
-    max_chars = chunk_chars or DEFAULT_CHUNK_CHARS
-    overlap = max_chars // 2
-    chunks = chunk_text(content, max_chars=max_chars, overlap=overlap)
+    if chunks is None:
+        max_chars = chunk_chars or DEFAULT_CHUNK_CHARS
+        overlap = max_chars // 2
+        chunks = chunk_text(content, max_chars=max_chars, overlap=overlap)
+    else:
+        max_chars = chunk_chars
+        chunks = [chunk.strip() for chunk in chunks if chunk.strip()]
     if not chunks:
         raise ValueError(f"Document '{filename}' has no text to embed")
 
@@ -133,3 +143,38 @@ def upsert_document(
         "chunk_chars": max_chars,
         "has_embedding": True,
     }
+
+
+def upsert_documents_structured(
+    filename: str,
+    content: str,
+    summary_tag: str,
+    question_tag: str,
+    document_id: str | None = None,
+    summary: str | None = None,
+) -> dict:
+    """Insert or replace a heading-structured document (for example a FAQ).
+
+    `summary_tag` and `question_tag` are heading levels such as `h1` /
+    `h2`. Text beneath the summary heading is stored on `documents.summary`
+    unless `summary` is passed. Each question heading plus the text
+    beneath it is embedded as one chunk.
+    """
+    extracted_summary, chunks = parse_structured_document(
+        content,
+        summary_tag=summary_tag,
+        question_tag=question_tag,
+    )
+    if not chunks:
+        raise ValueError(
+            f"Document '{filename}' has no question chunks to embed "
+            f"(looking for {question_tag} headings)"
+        )
+    caller_summary = (summary or "").strip() or None
+    return upsert_document(
+        filename=filename,
+        content=content,
+        document_id=document_id,
+        summary=caller_summary or extracted_summary,
+        chunks=chunks,
+    )

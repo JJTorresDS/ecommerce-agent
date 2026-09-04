@@ -1,6 +1,34 @@
 # Application architecture
 
-As-built after the `architecture_proposal.md` package split.
+As-built. Runtime Python is the `ecommerce_agent` package. Root shims (`app.py`, `agent.py`, `tools.py`, `vector_store.py`, `google_doc_reader.py`, `embeddings/`, `init/`) are gone.
+
+```bash
+uv run uvicorn ecommerce_agent.api.app:app --reload
+```
+
+## Layout
+
+```text
+ecommerce-agent/
+├── ecommerce_agent/
+│   ├── config.py                 # env: DB, LLM, embeddings, Google, tracing
+│   ├── db.py                     # one SQLAlchemy engine
+│   ├── api/
+│   │   ├── app.py                # FastAPI factory
+│   │   ├── schemas.py
+│   │   └── routes/               # ask, products, documents, health
+│   ├── agent/                    # llm, instructions, hooks, factory
+│   ├── tools/                    # catalog.py, knowledge.py
+│   ├── retrieval/                # read-only products + documents
+│   ├── ingest/                   # chunking, product/document writes, schema
+│   ├── embeddings/               # lazy HF | Gemini
+│   ├── integrations/google_docs.py
+│   └── jobs/sync_google_docs.py
+├── static/                       # chat + catalog HTML
+├── db/                           # init_vector_db.sql, seed, download_model
+├── notebooks/
+└── secrets/                      # gitignored service account
+```
 
 ## System overview
 
@@ -9,125 +37,135 @@ flowchart TB
     subgraph Clients
         ChatUI["Chat UI<br/>GET /"]
         CatalogUI["Catalog UI<br/>GET /ecommerce"]
-        Curl["curl / OpenAPI<br/>GET /docs"]
+        OpenAPI["OpenAPI / curl<br/>GET /docs"]
     end
 
-    subgraph FastAPI["ecommerce_agent.api"]
+    subgraph API["ecommerce_agent.api"]
         Ask["POST /ask"]
         Upload["POST /products/upload"]
         GDocEP["POST /documents/google-doc"]
         Health["GET /health"]
     end
 
-    subgraph AgentRuntime["ecommerce_agent.agent"]
-        Factory["factory.build_agent"]
+    subgraph AgentPkg["ecommerce_agent.agent"]
+        Factory["factory.agent"]
+        LLM["llm: Ollama | OpenRouter"]
+        Trace["AGENT_TRACING"]
+    end
+
+    subgraph ToolsPkg["ecommerce_agent.tools"]
         TList["list_knowledgebase_documents"]
+        TFaq["search_faq_knowledgebase"]
         TSearch["search_products"]
         TSku["get_item_details"]
-        TFaq["search_faq_knowledgebase"]
     end
 
-    subgraph LLM["LLM — LOCAL_MODEL"]
-        Ollama["Ollama"]
-        OpenRouter["OpenRouter"]
+    subgraph Retrieval["retrieval — read only"]
+        RProd["products.search / get_by_sku"]
+        RDocs["documents.list / search"]
     end
 
-    subgraph WritePath["ecommerce_agent.ingest"]
-        UpsertP["products.upsert"]
-        UpsertD["documents.upsert"]
+    subgraph IngestPkg["ingest — write only"]
+        ParseCSV["parse_products_csv"]
+        IProd["products.upsert"]
+        IDocs["documents.upsert"]
         Chunk["chunking"]
     end
 
-    subgraph ReadPath["ecommerce_agent.retrieval"]
-        SearchP["products.search / get_by_sku"]
-        SearchD["documents.list / search"]
+    subgraph Integrations["integrations.google_docs"]
+        Fetch["title + text"]
+        Drive["Drive modifiedTime"]
     end
 
-    subgraph Embed["embeddings — lazy HF | Gemini"]
-        Provider["get_provider()"]
-    end
-
-    subgraph Store["PostgreSQL + pgvector"]
-        Products["product_embeddings"]
-        Docs["documents"]
-        Chunks["document_embeddings"]
-    end
-
-    GDocs["Google Docs + Drive"]
     Job["jobs.sync_google_docs"]
+    Config["config.settings"]
+    Engine["db.engine"]
+    Embed["embeddings.get_provider<br/>lazy HF | Gemini"]
+    PG["PostgreSQL + pgvector"]
 
     ChatUI --> Ask
-    Curl --> Ask
-    Curl --> Upload
-    Curl --> GDocEP
-    CatalogUI -.-> Upload
+    CatalogUI --> Upload
+    OpenAPI --> Ask & Upload & GDocEP & Health
 
     Ask --> Factory
-    Factory -->|"LOCAL_MODEL=true"| Ollama
-    Factory -->|"LOCAL_MODEL=false"| OpenRouter
+    Factory --> LLM
+    Factory --> Trace
     Factory --> TList & TFaq & TSearch & TSku
 
-    TSearch --> SearchP
-    TSku --> SearchP
-    TList --> SearchD
-    TFaq --> SearchD
+    TList --> RDocs
+    TFaq --> RDocs
+    TSearch --> RProd
+    TSku --> RProd
 
-    Upload --> UpsertP
-    GDocEP --> GDocs --> UpsertD
-    UpsertD --> Chunk
-    Job --> GDocs
-    Job --> UpsertD
+    Upload --> ParseCSV --> IProd
+    GDocEP --> Fetch --> IDocs
+    IDocs --> Chunk
+    Job --> Drive
+    Job --> Fetch
+    Job --> IDocs
 
-    SearchP --> Products
-    SearchD --> Docs & Chunks
-    UpsertP --> Products
-    UpsertD --> Docs & Chunks
-
-    SearchP & SearchD & UpsertP & UpsertD --> Provider
+    RProd & RDocs & IProd & IDocs --> Embed
+    RProd & RDocs & IProd & IDocs --> Engine --> PG
+    Factory & Fetch & Embed --> Config
 ```
 
+## Layer rules
+
+- **api** calls the agent factory or ingest. It does not run SQL or embedding math.
+- **tools** call retrieval only. Tools never ingest.
+- **retrieval** is SELECT + cosine search.
+- **ingest** is the only writer of embeddings.
+- **jobs** reuse ingest + integrations. Not a second write path.
+- **config.py** is the only module that reads environment variables.
+
 ## Ask flow
+
+For FAQ / support, the agent lists document summaries first, then searches with that `document_id`. It must not invent contact details or policies. `search_faq_knowledgebase` requires `document_id` unless exactly one document exists.
 
 ```mermaid
 sequenceDiagram
     actor User
-    participant UI as Chat UI / POST /ask
-    participant App as api.routes.ask
-    participant Agent as ecommerce_agent
+    participant UI as Chat UI
+    participant Ask as POST /ask
+    participant Agent as agent.factory
     participant LLM as Ollama or OpenRouter
-    participant List as list_knowledgebase_documents
-    participant Search as search_faq_knowledgebase
+    participant Tools as tools
+    participant Retrieval as retrieval
     participant DB as pgvector
 
     User->>UI: question
-    UI->>App: POST /ask
-    App->>Agent: Runner.run(question)
+    UI->>Ask: JSON
+    Ask->>Agent: Runner.run
 
     loop until final answer
         Agent->>LLM: messages + tool schemas
-        alt knowledge-base question
-            LLM->>List: no args
-            List->>DB: summaries
-            List-->>LLM: catalog
-            LLM->>Search: query + document_id
-            Search->>DB: cosine search on that doc
-            Search-->>LLM: passages
-        else product question
-            LLM->>Agent: search_products / get_item_details
-        else final text
+        alt knowledge base
+            LLM->>Tools: list_knowledgebase_documents
+            Tools->>Retrieval: list_documents
+            Retrieval->>DB: id, filename, summary
+            LLM->>Tools: search_faq_knowledgebase query + document_id
+            Tools->>Retrieval: search_documents
+            Retrieval->>DB: embedding <=> query
+        else catalog
+            LLM->>Tools: search_products / get_item_details
+            Tools->>Retrieval: search / get_by_sku
+            Retrieval->>DB: product_embeddings
+        else done
             LLM-->>Agent: final_output
         end
     end
 
-    Agent-->>App: answer
-    App-->>User: JSON / chat bubble
+    Agent-->>Ask: answer
+    Ask-->>User: JSON / chat bubble
 ```
 
-## Ingest flows
+## Ingest and sync
+
+Google Doc **id** is `documents.id`. The Doc **title** is `filename`. Optional `summary` is what the LLM reads before searching. Optional `chunk_chars`: omit for OpenAI File Search default (3200 chars, 50% overlap); FAQ pages 1200–1400; contracts ~3200.
 
 ```mermaid
 flowchart LR
-    subgraph Products["Product catalog"]
+    subgraph Catalog["Product catalog"]
         CSV["CSV sku, description"]
         Seed["db/seed_products.py"]
         UP["POST /products/upload"]
@@ -135,11 +173,10 @@ flowchart LR
         PE["product_embeddings"]
     end
 
-    subgraph Knowledge["FAQ / knowledge base"]
+    subgraph KB["Knowledge base"]
         URL["Google Doc URL"]
         GD["POST /documents/google-doc"]
-        Fetch["integrations.google_docs"]
-        Chunk["chunk_chars default 3200"]
+        GDocs["Docs API + Drive"]
         UD["ingest.documents"]
         DT["documents"]
         DE["document_embeddings"]
@@ -150,13 +187,17 @@ flowchart LR
     Seed --> Batch
     Batch --> PE
 
-    URL --> GD --> Fetch --> Chunk --> UD
-    Cron --> Fetch
+    URL --> GD --> GDocs --> UD
+    Cron -->|"re-embed if Drive newer than updated_at / embedded_at"| GDocs
     UD --> DT
     UD --> DE
 ```
 
-## Data model
+The sync job skips ids that start with `file_`. It does not `ALTER` tables.
+
+## Data model and indexes
+
+New databases (`db/init_vector_db.sql` and `ingest.schema.init_db`) use **HNSW**. Existing databases that still have IVFFlat `lists = 100` keep working because retrieval sets `ivfflat.probes = 100` per query. No live `ALTER`.
 
 ```mermaid
 erDiagram
@@ -192,3 +233,19 @@ erDiagram
 
     documents ||--o{ document_embeddings : chunks
 ```
+
+## Config
+
+`ecommerce_agent.config.settings` (from `.env`):
+
+| Variable | Role |
+|---|---|
+| `POSTGRES_*` | Database URL |
+| `LOCAL_MODEL` | `true` → Ollama, else OpenRouter |
+| `OLLAMA_MODEL` / `OLLAMA_BASE_URL` | Local model |
+| `OPEN_ROUTER_API_KEY` / `OPENROUTER_MODEL` | Hosted model |
+| `EMBEDDING_PROVIDER` | `hf` (default) or `gemini` |
+| `GOOGLE_SERVICE_ACCOUNT_FILE` | Defaults to `secrets/google_service_account.json` |
+| `AGENT_TRACING` | `true` enables Agents SDK traces |
+
+The Hugging Face model loads on first `get_provider()` call, not at process import. `/health` does not embed.

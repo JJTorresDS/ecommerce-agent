@@ -1,6 +1,9 @@
 from types import SimpleNamespace
 from unittest.mock import Mock
 
+from agents.models.openai_chatcompletions import OpenAIChatCompletionsModel
+from agents.models.openai_responses import OpenAIResponsesModel
+
 from ecommerce_agent.agent import llm as llm_mod
 from ecommerce_agent.config import OPENAI_BASE_URL, OPENROUTER_BASE_URL
 
@@ -76,3 +79,31 @@ def test_build_model_uses_openrouter_when_provider_is_openrouter(monkeypatch):
     assert captured["api_key"] == "or-key"
     assert captured["base_url"] == OPENROUTER_BASE_URL
     assert model.model == "nvidia/nemotron-3.5-lightning:free"
+    assert isinstance(model, OpenAIResponsesModel)
+
+
+def test_build_model_uses_mistral_chat_completions(monkeypatch):
+    captured = {}
+
+    def fake_client(**kwargs):
+        captured.update(kwargs)
+        return Mock()
+
+    monkeypatch.setattr(
+        llm_mod,
+        "settings",
+        _settings(
+            llm_provider="mistral",
+            model="mistral-small",
+            api_key="mistral-key",
+        ),
+    )
+    monkeypatch.setattr(llm_mod, "AsyncOpenAI", fake_client)
+
+    model = llm_mod.build_model()
+
+    assert captured["api_key"] == "mistral-key"
+    assert captured["base_url"] == llm_mod.MISTRAL_BASE_URL
+    assert "api.mistral.ai" in captured["base_url"]
+    assert model.model == "mistral-small"
+    assert isinstance(model, OpenAIChatCompletionsModel)

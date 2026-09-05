@@ -3,37 +3,37 @@
     "id": 17,
     "question": "How long does shipping take?",
     "answer": "Standard shipping takes 3–5 business days; express is 1–2 business days.",
-    "synthetic_question": "What's the usual time frame for delivery?"
+    "synthetic_question": "What’s the typical wait time for my order to arrive?"
   },
   {
     "id": 17,
     "question": "How long does shipping take?",
     "answer": "Standard shipping takes 3–5 business days; express is 1–2 business days.",
-    "synthetic_question": "Does anyone know the shipping time for standard and express options?"
+    "synthetic_question": "If I select standard delivery, how many days will it be before I get my package?"
   },
   {
     "id": 17,
     "question": "How long does shipping take?",
     "answer": "Standard shipping takes 3–5 business days; express is 1–2 business days.",
-    "synthetic_question": "If I choose standard shipping, how many days should I expect my order to arrive?"
+    "synthetic_question": "Can someone tell me how many business days it usually takes for shipping?"
   },
   {
     "id": 17,
     "question": "How long does shipping take?",
     "answer": "Standard shipping takes 3–5 business days; express is 1–2 business days.",
-    "synthetic_question": "Can someone tell me how quickly I can get my order with express shipping?"
+    "synthetic_question": "How fast is express shipping compared to the standard option?"
   },
   {
     "id": 17,
     "question": "How long does shipping take?",
     "answer": "Standard shipping takes 3–5 business days; express is 1–2 business days.",
-    "synthetic_question": "I'm curious about the delivery times for shipping; how long does it usually take?"
+    "synthetic_question": "What is the shipping duration for standard and express methods?"
   },
   {
     "id": 18,
     "question": "Do you ship internationally?",
     "answer": "No, we only ship within Argentina.",
-    "synthetic_question": "Can I get my order shipped outside of Argentina?"
+    "synthetic_question": "Can I get my order delivered outside of Argentina?"
   },
   {
     "id": 18,
@@ -45,468 +45,468 @@
     "id": 18,
     "question": "Do you ship internationally?",
     "answer": "No, we only ship within Argentina.",
-    "synthetic_question": "What are the shipping options for locations outside of Argentina?"
+    "synthetic_question": "Are you able to send products to countries other than Argentina?"
   },
   {
     "id": 18,
     "question": "Do you ship internationally?",
     "answer": "No, we only ship within Argentina.",
-    "synthetic_question": "I’m wondering if you offer international shipping services?"
+    "synthetic_question": "Do you offer international shipping?"
   },
   {
     "id": 18,
     "question": "Do you ship internationally?",
     "answer": "No, we only ship within Argentina.",
-    "synthetic_question": "Does anyone know if you can ship items to countries other than Argentina?"
+    "synthetic_question": "Will my package be shipped to a location outside of Argentina?"
   },
   {
     "id": 19,
     "question": "How much does shipping cost?",
     "answer": "Orders over $50 ship free; otherwise a flat $5.99 fee applies.",
-    "synthetic_question": "Does anyone know if shipping is free for orders above a certain amount?"
+    "synthetic_question": "What will I have to pay for delivery if my order is below a certain amount?"
   },
   {
     "id": 19,
     "question": "How much does shipping cost?",
     "answer": "Orders over $50 ship free; otherwise a flat $5.99 fee applies.",
-    "synthetic_question": "I'm curious about shipping fees. Are there any conditions for free shipping?"
+    "synthetic_question": "Can someone tell me if there are shipping fees for orders under $50?"
   },
   {
     "id": 19,
     "question": "How much does shipping cost?",
     "answer": "Orders over $50 ship free; otherwise a flat $5.99 fee applies.",
-    "synthetic_question": "Can someone tell me what the shipping costs are for different order sizes?"
+    "synthetic_question": "Is there a delivery charge for orders that don’t reach 50 dollars?"
   },
   {
     "id": 19,
     "question": "How much does shipping cost?",
     "answer": "Orders over $50 ship free; otherwise a flat $5.99 fee applies.",
-    "synthetic_question": "Is there a minimum order amount to qualify for free shipping?"
+    "synthetic_question": "Do I have to pay for shipping if my order total is less than $50?"
   },
   {
     "id": 19,
     "question": "How much does shipping cost?",
     "answer": "Orders over $50 ship free; otherwise a flat $5.99 fee applies.",
-    "synthetic_question": "What’s the deal with shipping fees? Do they change based on how much I spend?"
+    "synthetic_question": "What’s the shipping fee if my order doesn’t exceed $50?"
   },
   {
     "id": 20,
     "question": "Can I track my order?",
     "answer": "Yes, you'll receive a tracking link by email once your order ships.",
-    "synthetic_question": "How do I find out where my order is?"
+    "synthetic_question": "How can I find out where my package is?"
   },
   {
     "id": 20,
     "question": "Can I track my order?",
     "answer": "Yes, you'll receive a tracking link by email once your order ships.",
-    "synthetic_question": "Will I get a link to track my shipment?"
+    "synthetic_question": "Is there a way to monitor the shipment of my order?"
   },
   {
     "id": 20,
     "question": "Can I track my order?",
     "answer": "Yes, you'll receive a tracking link by email once your order ships.",
-    "synthetic_question": "Is there a way to check the status of my order?"
+    "synthetic_question": "Will I get an email with a tracking link for my order?"
   },
   {
     "id": 20,
     "question": "Can I track my order?",
     "answer": "Yes, you'll receive a tracking link by email once your order ships.",
-    "synthetic_question": "Do I get an email with tracking information after my order is sent out?"
+    "synthetic_question": "Do you send out tracking information after shipping?"
   },
   {
     "id": 20,
     "question": "Can I track my order?",
     "answer": "Yes, you'll receive a tracking link by email once your order ships.",
-    "synthetic_question": "Once my order ships, will I be able to see where it is?"
+    "synthetic_question": "Once my order ships, how will I be able to track it?"
   },
   {
     "id": 21,
     "question": "How do I find the right size for my child?",
     "answer": "Check our size chart — we recommend measuring height and chest rather than going by age, since kids' proportions vary.",
-    "synthetic_question": "What’s the best way to determine my child's size for clothing?"
+    "synthetic_question": "What’s the best way to determine what size fits my kid?"
   },
   {
     "id": 21,
     "question": "How do I find the right size for my child?",
     "answer": "Check our size chart — we recommend measuring height and chest rather than going by age, since kids' proportions vary.",
-    "synthetic_question": "Does anyone know how I can measure my child for the right size?"
+    "synthetic_question": "Can someone tell me how to choose the proper size for a child?"
   },
   {
     "id": 21,
     "question": "How do I find the right size for my child?",
     "answer": "Check our size chart — we recommend measuring height and chest rather than going by age, since kids' proportions vary.",
-    "synthetic_question": "I’m not sure how to size my child’s clothes — any tips?"
+    "synthetic_question": "Is there a way to accurately size my child without just using their age?"
   },
   {
     "id": 21,
     "question": "How do I find the right size for my child?",
     "answer": "Check our size chart — we recommend measuring height and chest rather than going by age, since kids' proportions vary.",
-    "synthetic_question": "What should I measure to get the correct size for my kid?"
+    "synthetic_question": "How can I check what size clothes my child needs?"
   },
   {
     "id": 21,
     "question": "How do I find the right size for my child?",
     "answer": "Check our size chart — we recommend measuring height and chest rather than going by age, since kids' proportions vary.",
-    "synthetic_question": "Is it better to use measurements or age for finding the right size for kids?"
+    "synthetic_question": "What measurements should I take to find my child's size?"
   },
   {
     "id": 22,
     "question": "What if the size doesn't fit?",
     "answer": "Free exchanges within 30 days — just choose a new size at checkout on your return.",
-    "synthetic_question": "Can I swap sizes if what I ordered doesn't fit?"
+    "synthetic_question": "What should I do if the clothing I ordered is the wrong size?"
   },
   {
     "id": 22,
     "question": "What if the size doesn't fit?",
     "answer": "Free exchanges within 30 days — just choose a new size at checkout on your return.",
-    "synthetic_question": "Is it possible to exchange for a different size if mine is wrong?"
+    "synthetic_question": "Can I get a different size if what I received isn't right?"
   },
   {
     "id": 22,
     "question": "What if the size doesn't fit?",
     "answer": "Free exchanges within 30 days — just choose a new size at checkout on your return.",
-    "synthetic_question": "Does anyone know how to handle it if the size I got isn't right?"
+    "synthetic_question": "Is it possible to exchange for a new size if it doesn’t fit?"
   },
   {
     "id": 22,
     "question": "What if the size doesn't fit?",
     "answer": "Free exchanges within 30 days — just choose a new size at checkout on your return.",
-    "synthetic_question": "What should I do if I need a different size after I’ve ordered?"
+    "synthetic_question": "How does the exchange process work if my size doesn't fit?"
   },
   {
     "id": 22,
     "question": "What if the size doesn't fit?",
     "answer": "Free exchanges within 30 days — just choose a new size at checkout on your return.",
-    "synthetic_question": "Am I able to exchange a size that doesn’t fit within a month?"
+    "synthetic_question": "What are my options for size exchanges within 30 days?"
   },
   {
     "id": 23,
     "question": "What's your return policy?",
     "answer": "Unworn items with tags can be returned within 30 days for a full refund.",
-    "synthetic_question": "Can I return items if they haven't been worn?"
+    "synthetic_question": "How can I send back something I bought if I haven't used it yet?"
   },
   {
     "id": 23,
     "question": "What's your return policy?",
     "answer": "Unworn items with tags can be returned within 30 days for a full refund.",
-    "synthetic_question": "How long do I have to send back items for a refund?"
+    "synthetic_question": "Can I get my money back if I return a brand new item?"
   },
   {
     "id": 23,
     "question": "What's your return policy?",
     "answer": "Unworn items with tags can be returned within 30 days for a full refund.",
-    "synthetic_question": "Are there any conditions for returning products?"
+    "synthetic_question": "Is there a time limit for returning unworn items?"
   },
   {
     "id": 23,
     "question": "What's your return policy?",
     "answer": "Unworn items with tags can be returned within 30 days for a full refund.",
-    "synthetic_question": "Is it possible to get a refund for unused items?"
+    "synthetic_question": "What do I need to do to return something I've bought?"
   },
   {
     "id": 23,
     "question": "What's your return policy?",
     "answer": "Unworn items with tags can be returned within 30 days for a full refund.",
-    "synthetic_question": "Does anyone know how returns work if the items still have tags?"
+    "synthetic_question": "How long do I have to return unworn items for a refund?"
   },
   {
     "id": 24,
     "question": "Can I return sale items?",
     "answer": "Sale items are final sale / eligible for store credit only.",
-    "synthetic_question": "Are sale items returnable or just for store credit?"
+    "synthetic_question": "Is it possible to send back items that were on sale?"
   },
   {
     "id": 24,
     "question": "Can I return sale items?",
     "answer": "Sale items are final sale / eligible for store credit only.",
-    "synthetic_question": "What’s the policy on returning items that were on sale?"
+    "synthetic_question": "What happens if I want to return something I bought at a discount?"
   },
   {
     "id": 24,
     "question": "Can I return sale items?",
     "answer": "Sale items are final sale / eligible for store credit only.",
-    "synthetic_question": "Does anyone know if I can get a refund on sale merchandise?"
+    "synthetic_question": "Once I buy something on sale, am I stuck with it?"
   },
   {
     "id": 24,
     "question": "Can I return sale items?",
     "answer": "Sale items are final sale / eligible for store credit only.",
-    "synthetic_question": "If I bought something on sale, can I take it back for a refund?"
+    "synthetic_question": "Are items bought on sale returnable, or are they final?"
   },
   {
     "id": 24,
     "question": "Can I return sale items?",
     "answer": "Sale items are final sale / eligible for store credit only.",
-    "synthetic_question": "Can I exchange sale items or are they just for store credit?"
+    "synthetic_question": "Can I get store credit for a sale item if I need to return it?"
   },
   {
     "id": 25,
     "question": "How do I start a return?",
     "answer": "Use the \"Returns\" link in your order confirmation email, or enter your order number on our returns portal.",
-    "synthetic_question": "What’s the process for returning something I ordered?"
+    "synthetic_question": "What steps should I take if I want to send something back?"
   },
   {
     "id": 25,
     "question": "How do I start a return?",
     "answer": "Use the \"Returns\" link in your order confirmation email, or enter your order number on our returns portal.",
-    "synthetic_question": "Can someone explain how I can initiate a return?"
+    "synthetic_question": "Does anyone know the process for returning an item?"
   },
   {
     "id": 25,
     "question": "How do I start a return?",
     "answer": "Use the \"Returns\" link in your order confirmation email, or enter your order number on our returns portal.",
-    "synthetic_question": "Is there a way to start my return from the confirmation email?"
+    "synthetic_question": "Can you tell me how to initiate a return for my order?"
   },
   {
     "id": 25,
     "question": "How do I start a return?",
     "answer": "Use the \"Returns\" link in your order confirmation email, or enter your order number on our returns portal.",
-    "synthetic_question": "How can I go about returning an item I purchased?"
+    "synthetic_question": "How can I return my order using the returns portal?"
   },
   {
     "id": 25,
     "question": "How do I start a return?",
     "answer": "Use the \"Returns\" link in your order confirmation email, or enter your order number on our returns portal.",
-    "synthetic_question": "Does anyone know how to begin the return process for my order?"
+    "synthetic_question": "What do I click on in my order confirmation email to return an item?"
   },
   {
     "id": 26,
     "question": "Who pays for return shipping?",
     "answer": "Returns due to product defects are on us; all other returns are paid by the customer.",
-    "synthetic_question": "If I need to return something, who is responsible for the shipping cost?"
+    "synthetic_question": "If I want to send something back, will I have to cover the shipping costs?"
   },
   {
     "id": 26,
     "question": "Who pays for return shipping?",
     "answer": "Returns due to product defects are on us; all other returns are paid by the customer.",
-    "synthetic_question": "Are customers required to cover the shipping fees for returns, or does the store handle that?"
+    "synthetic_question": "Can someone clarify who is responsible for shipping when returning an item?"
   },
   {
     "id": 26,
     "question": "Who pays for return shipping?",
     "answer": "Returns due to product defects are on us; all other returns are paid by the customer.",
-    "synthetic_question": "Does the company take care of return shipping costs if the item is defective?"
+    "synthetic_question": "What happens with shipping fees if I return something that's not defective?"
   },
   {
     "id": 26,
     "question": "Who pays for return shipping?",
     "answer": "Returns due to product defects are on us; all other returns are paid by the customer.",
-    "synthetic_question": "What’s the policy on return shipping fees? Do customers have to pay for those generally?"
+    "synthetic_question": "Do I have to pay for return shipping if the product isn't defective?"
   },
   {
     "id": 26,
     "question": "Who pays for return shipping?",
     "answer": "Returns due to product defects are on us; all other returns are paid by the customer.",
-    "synthetic_question": "In case of a return, is shipping cost covered by the company for defective items?"
+    "synthetic_question": "For returns, who covers the shipping costs?"
   },
   {
     "id": 27,
     "question": "Are your fabrics safe for sensitive skin?",
     "answer": "Yes — our fabrics are OEKO-TEX certified and free of harsh dyes and chemicals.",
-    "synthetic_question": "Can someone tell me if your materials are good for people with sensitive skin?"
+    "synthetic_question": "Do your materials pose any risk for people with delicate skin?"
   },
   {
     "id": 27,
     "question": "Are your fabrics safe for sensitive skin?",
     "answer": "Yes — our fabrics are OEKO-TEX certified and free of harsh dyes and chemicals.",
-    "synthetic_question": "Do your fabrics work well for those who have skin sensitivities?"
+    "synthetic_question": "Can I trust your fabrics if I have allergies or sensitive skin?"
   },
   {
     "id": 27,
     "question": "Are your fabrics safe for sensitive skin?",
     "answer": "Yes — our fabrics are OEKO-TEX certified and free of harsh dyes and chemicals.",
-    "synthetic_question": "Is it true that your fabrics are safe for people with delicate skin?"
+    "synthetic_question": "What certifications do your fabrics have regarding safety for sensitive skin?"
   },
   {
     "id": 27,
     "question": "Are your fabrics safe for sensitive skin?",
     "answer": "Yes — our fabrics are OEKO-TEX certified and free of harsh dyes and chemicals.",
-    "synthetic_question": "What can you tell me about the safety of your fabrics for sensitive skin?"
+    "synthetic_question": "Are the fabrics you sell safe for those with sensitive skin?"
   },
   {
     "id": 27,
     "question": "Are your fabrics safe for sensitive skin?",
     "answer": "Yes — our fabrics are OEKO-TEX certified and free of harsh dyes and chemicals.",
-    "synthetic_question": "Are your products safe to use if I have sensitive skin?"
+    "synthetic_question": "Is it true that your fabrics are safe for people with sensitive skin?"
   },
   {
     "id": 28,
     "question": "How should I wash these clothes?",
     "answer": "Machine wash cold, tumble dry low. Check the care label for specific items (some prints are wash-cold-only).",
-    "synthetic_question": "What’s the best way to clean these garments?"
+    "synthetic_question": "What’s the best way to clean these garments without damaging them?"
   },
   {
     "id": 28,
     "question": "How should I wash these clothes?",
     "answer": "Machine wash cold, tumble dry low. Check the care label for specific items (some prints are wash-cold-only).",
-    "synthetic_question": "Can anyone tell me how to properly wash these items?"
+    "synthetic_question": "Can I put these in the washing machine and what settings should I use?"
   },
   {
     "id": 28,
     "question": "How should I wash these clothes?",
     "answer": "Machine wash cold, tumble dry low. Check the care label for specific items (some prints are wash-cold-only).",
-    "synthetic_question": "Is it okay to machine wash these, and what temperature should I use?"
+    "synthetic_question": "What temperature should I use when washing these items?"
   },
   {
     "id": 28,
     "question": "How should I wash these clothes?",
     "answer": "Machine wash cold, tumble dry low. Check the care label for specific items (some prints are wash-cold-only).",
-    "synthetic_question": "What washing instructions should I follow for these clothes?"
+    "synthetic_question": "Is there a specific washing method I need to follow for these?"
   },
   {
     "id": 28,
     "question": "How should I wash these clothes?",
     "answer": "Machine wash cold, tumble dry low. Check the care label for specific items (some prints are wash-cold-only).",
-    "synthetic_question": "Are there specific washing guidelines I need to follow for these?"
+    "synthetic_question": "Do I need to wash these clothes in cold water only?"
   },
   {
     "id": 29,
     "question": "What payment methods do you accept?",
     "answer": "Mecado Pago and Any credit card.",
-    "synthetic_question": "Can I pay with Mercado Pago or a credit card?"
+    "synthetic_question": "Can someone tell me which ways I can pay?"
   },
   {
     "id": 29,
     "question": "What payment methods do you accept?",
     "answer": "Mecado Pago and Any credit card.",
-    "synthetic_question": "Does anybody know if you take Mercado Pago or just credit cards?"
+    "synthetic_question": "Which credit cards can I use for payment?"
   },
   {
     "id": 29,
     "question": "What payment methods do you accept?",
     "answer": "Mecado Pago and Any credit card.",
-    "synthetic_question": "Are Mercado Pago and credit cards the only ways to pay?"
+    "synthetic_question": "I’m curious about the options for making a payment."
   },
   {
     "id": 29,
     "question": "What payment methods do you accept?",
     "answer": "Mecado Pago and Any credit card.",
-    "synthetic_question": "I was wondering what payment options are available here."
+    "synthetic_question": "Are there specific payment platforms you work with?"
   },
   {
     "id": 29,
     "question": "What payment methods do you accept?",
     "answer": "Mecado Pago and Any credit card.",
-    "synthetic_question": "Can I use a credit card or Mercado Pago for my purchase?"
+    "synthetic_question": "Do you take Mercado Pago or just credit cards?"
   },
   {
     "id": 30,
     "question": "Can I change or cancel my order after placing it?",
     "answer": "Orders can be changed within 1 hour of placing them — after that, they're already in fulfillment.",
-    "synthetic_question": "Is it possible to modify or cancel my order once I've submitted it?"
+    "synthetic_question": "Is there any chance I can modify my order after I've submitted it?"
   },
   {
     "id": 30,
     "question": "Can I change or cancel my order after placing it?",
     "answer": "Orders can be changed within 1 hour of placing them — after that, they're already in fulfillment.",
-    "synthetic_question": "How long do I have to update or cancel my order after I make it?"
+    "synthetic_question": "Does anyone know if I can still alter my order once it's been placed?"
   },
   {
     "id": 30,
     "question": "Can I change or cancel my order after placing it?",
     "answer": "Orders can be changed within 1 hour of placing them — after that, they're already in fulfillment.",
-    "synthetic_question": "Does anyone know if I can still change my order after an hour?"
+    "synthetic_question": "What’s the timeframe for modifying an order after it has been made?"
   },
   {
     "id": 30,
     "question": "Can I change or cancel my order after placing it?",
     "answer": "Orders can be changed within 1 hour of placing them — after that, they're already in fulfillment.",
-    "synthetic_question": "I need to know if there’s a time limit to make changes to my order."
+    "synthetic_question": "Can I still cancel my order within the first hour after I placed it?"
   },
   {
     "id": 30,
     "question": "Can I change or cancel my order after placing it?",
     "answer": "Orders can be changed within 1 hour of placing them — after that, they're already in fulfillment.",
-    "synthetic_question": "What’s the window for canceling or altering my order once it's been placed?"
+    "synthetic_question": "How long do I have to change my order after placing it?"
   },
   {
     "id": 31,
     "question": "Do you offer gift cards?",
     "answer": "Yes, digital gift cards from $25–$200 are available.",
-    "synthetic_question": "Can I buy a gift card from your store?"
+    "synthetic_question": "Can I get a gift card from your store?"
   },
   {
     "id": 31,
     "question": "Do you offer gift cards?",
     "answer": "Yes, digital gift cards from $25–$200 are available.",
-    "synthetic_question": "Are gift cards an option for purchase?"
+    "synthetic_question": "Are there any digital gift card options available?"
   },
   {
     "id": 31,
     "question": "Do you offer gift cards?",
     "answer": "Yes, digital gift cards from $25–$200 are available.",
-    "synthetic_question": "What’s the range for your digital gift cards?"
+    "synthetic_question": "What are the prices for your gift cards?"
   },
   {
     "id": 31,
     "question": "Do you offer gift cards?",
     "answer": "Yes, digital gift cards from $25–$200 are available.",
-    "synthetic_question": "Does your store sell gift cards and how much are they?"
+    "synthetic_question": "Do you sell gift cards and how much are they?"
   },
   {
     "id": 31,
     "question": "Do you offer gift cards?",
     "answer": "Yes, digital gift cards from $25–$200 are available.",
-    "synthetic_question": "I'm looking for gift cards. Do you sell those?"
+    "synthetic_question": "How much can I load onto a digital gift card?"
   },
   {
     "id": 32,
     "question": "Do I need an account to order?",
     "answer": "No, guest checkout is available, but an account lets you track orders and save favorites.",
-    "synthetic_question": "Can I place an order without creating an account?"
+    "synthetic_question": "Can I place an order without signing up for an account?"
   },
   {
     "id": 32,
     "question": "Do I need an account to order?",
     "answer": "No, guest checkout is available, but an account lets you track orders and save favorites.",
-    "synthetic_question": "Is it possible to shop as a guest instead of signing up?"
+    "synthetic_question": "Is it possible to make a purchase as a guest?"
   },
   {
     "id": 32,
     "question": "Do I need an account to order?",
     "answer": "No, guest checkout is available, but an account lets you track orders and save favorites.",
-    "synthetic_question": "What happens if I don't have an account? Can I still order?"
+    "synthetic_question": "If I don't create an account, can I still buy something?"
   },
   {
     "id": 32,
     "question": "Do I need an account to order?",
     "answer": "No, guest checkout is available, but an account lets you track orders and save favorites.",
-    "synthetic_question": "Does anyone know if you can check out without registering an account?"
+    "synthetic_question": "What happens if I don’t have an account when ordering?"
   },
   {
     "id": 32,
     "question": "Do I need an account to order?",
     "answer": "No, guest checkout is available, but an account lets you track orders and save favorites.",
-    "synthetic_question": "I'm wondering if I have to sign up to make a purchase?"
+    "synthetic_question": "Can I order without making an account to track my orders?"
   },
   {
     "id": 33,
     "question": "How do I contact customer service?",
     "answer": "Chat with us here, email support@jonas-demo.com, or call 1-800-JONAS-DEMO, Mon–Fri 9am–6pm.",
-    "synthetic_question": "What's the best way to reach customer support?"
+    "synthetic_question": "What’s the best way to get in touch with support?"
   },
   {
     "id": 33,
     "question": "How do I contact customer service?",
     "answer": "Chat with us here, email support@jonas-demo.com, or call 1-800-JONAS-DEMO, Mon–Fri 9am–6pm.",
-    "synthetic_question": "Can someone tell me how to get in touch with customer service?"
+    "synthetic_question": "Can someone let me know how to reach customer service?"
   },
   {
     "id": 33,
     "question": "How do I contact customer service?",
     "answer": "Chat with us here, email support@jonas-demo.com, or call 1-800-JONAS-DEMO, Mon–Fri 9am–6pm.",
-    "synthetic_question": "Is there a way to chat or call customer support for help?"
+    "synthetic_question": "Is there a way to reach support if I have a question?"
   },
   {
     "id": 33,
     "question": "How do I contact customer service?",
     "answer": "Chat with us here, email support@jonas-demo.com, or call 1-800-JONAS-DEMO, Mon–Fri 9am–6pm.",
-    "synthetic_question": "What are the options to reach out to customer service?"
+    "synthetic_question": "How can I chat or email customer service?"
   },
   {
     "id": 33,
     "question": "How do I contact customer service?",
     "answer": "Chat with us here, email support@jonas-demo.com, or call 1-800-JONAS-DEMO, Mon–Fri 9am–6pm.",
-    "synthetic_question": "If I need help, how can I contact customer support?"
+    "synthetic_question": "What’s the phone number for customer service?"
   }
 ]

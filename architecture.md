@@ -30,8 +30,9 @@ ecommerce-agent/
 ├── db/                           # init_vector_db.sql, seed, download_model
 ├── notebooks/
 ├── evals/                        # FAQ ground truth + synthetic eval generator
+├── llm-api-tests/                # live chat/embedding API pings (not in uv run pytest)
 ├── tests/
-├── Makefile                      # make run_app
+├── Makefile                      # make run_app, make llm_api_tests
 ├── AGENTS.md                     # TDD + keep README and architecture.md current
 └── secrets/                      # gitignored service account
 ```
@@ -56,7 +57,7 @@ flowchart TB
 
     subgraph AgentPkg["ecommerce_agent.agent"]
         Factory["factory.agent"]
-        LLM["llm: Ollama | OpenRouter | OpenAI"]
+        LLM["llm: Ollama | OpenRouter | OpenAI | Mistral"]
         Trace["Langfuse + OpenInference"]
     end
 
@@ -138,7 +139,7 @@ sequenceDiagram
     participant UI as Chat UI
     participant Ask as POST /ask
     participant Agent as agent.factory
-    participant LLM as Ollama or OpenRouter
+    participant LLM as Ollama, OpenRouter, OpenAI, or Mistral
     participant Tools as tools
     participant Retrieval as retrieval
     participant DB as pgvector
@@ -213,7 +214,11 @@ The sync job skips ids that start with `file_`. It does not `ALTER` tables.
 
 ## Evals
 
-`evals/datasets/faq_ground_truth.json` holds gold FAQ question/answer pairs. `evals/generate_eval_data.py` calls the same LLM provider as the agent (Ollama, OpenRouter, or OpenAI), shows a tqdm bar per FAQ, and writes five `synthetic_question` rows per FAQ to `evals/datasets/faq_eval_synthetic.json`. It is not on the ask/ingest path.
+`evals/datasets/faq_ground_truth.json` holds gold FAQ question/answer pairs. `evals/generate_eval_data.py` calls the same LLM provider as the agent (Ollama, OpenRouter, OpenAI, or Mistral), shows a tqdm bar per FAQ, and writes five `synthetic_question` rows per FAQ to `evals/datasets/faq_eval_synthetic.json`. It is not on the ask/ingest path.
+
+## LLM API smoke tests
+
+`llm-api-tests/` pings each chat and embedding API with a one-token prompt. It is not on the ask/ingest path and is not collected by `uv run pytest`. `make llm_api_tests` runs the folder; a missing key (or unreachable Ollama) skips that test. Shared helpers live in `llm-api-tests/providers.py`.
 
 ## Data model and indexes
 
@@ -258,16 +263,16 @@ erDiagram
 
 ## Config
 
-`ecommerce_agent.config.settings` reads **secrets** from `.env`. Chat/embedding backends are module constants in `config.py` and are not overridden by the environment.
+`ecommerce_agent.config.settings` reads **secrets** from `.env`. Chat/embedding backends are module constants in `config.py` and are not overridden by the environment. `build_model()` in `ecommerce_agent/agent/llm.py` uses `OpenAIChatCompletionsModel` for Mistral (Chat Completions at `MISTRAL_BASE_URL`) and `OpenAIResponsesModel` for OpenAI, OpenRouter, and Ollama.
 
 | Variable / constant | Role |
 |---|---|
 | `POSTGRES_*` | Database URL (`.env`) |
-| `LLM_PROVIDER` | `config.py` constant: `ollama`, `openrouter`, or `openai` (currently `openai`) |
+| `LLM_PROVIDER` | `config.py` constant: `ollama`, `openrouter`, `openai`, or `mistral` (currently `mistral`) |
 | `LOCAL_MODEL` | `config.py` constant derived from `LLM_PROVIDER == "ollama"` |
 | `EMBEDDING_PROVIDER` | `config.py` constant: `hf` (1024-d), `gemini` (768-d), or `openai` (1536-d) (currently `gemini`) |
-| `MODEL` | Optional `.env` chat-model override (`settings.model`). Defaults: Ollama `qwen2.5:7b`, OpenRouter `nvidia/nemotron-3.5-lightning:free`, OpenAI `gpt-4o-mini`. Fallbacks: `OLLAMA_MODEL` / `OPENROUTER_MODEL` / `OPENAI_MODEL` |
-| `OPEN_ROUTER_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` | Secrets in `.env`. Resolved into `settings.api_key` / `settings.embedding_api_key` |
+| `MODEL` | Optional `.env` chat-model override (`settings.model`). Defaults: Ollama `qwen2.5:7b`, OpenRouter `nvidia/nemotron-3.5-lightning:free`, OpenAI `gpt-4o-mini`, Mistral `mistral-small`. Fallbacks: `OLLAMA_MODEL` / `OPENROUTER_MODEL` / `OPENAI_MODEL` / `MISTRAL_MODEL` |
+| `OPEN_ROUTER_API_KEY` / `OPENAI_API_KEY` / `MISTRAL_API_KEY` / `GEMINI_API_KEY` | Secrets in `.env`. Resolved into `settings.api_key` / `settings.embedding_api_key` |
 | `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | Secrets in `.env`. Tracing is on when `LANGFUSE_TRACING` is true in `config.py` and both keys are set (`settings.langfuse_enabled`). Agents SDK tracing stays enabled so OpenInference can export tool and generation spans under the `ask` observation |
 | `LANGFUSE_BASE_URL` | Optional `.env` host (EU `https://cloud.langfuse.com`, US `https://us.cloud.langfuse.com`). Fallback constant `LANGFUSE_BASE_URL` in `config.py` |
 | `LANGFUSE_ENVIRONMENT` | `config.py` constant (`development`) sent as `LANGFUSE_TRACING_ENVIRONMENT` |
@@ -275,6 +280,6 @@ erDiagram
 | `GOOGLE_SERVICE_ACCOUNT_FILE` | Defaults to `secrets/google_service_account.json` |
 | `AGENT_TRACING` | `true` enables OpenAI Agents SDK platform traces (separate from Langfuse) |
 
-Provider base URLs are module constants in `ecommerce_agent/config.py` (`OLLAMA_BASE_URL`, `OPENROUTER_BASE_URL`, `OPENAI_BASE_URL`, `GEMINI_OPENAI_BASE_URL`), each overridable by the same-named env var. They are not Settings fields.
+Provider base URLs are module constants in `ecommerce_agent/config.py` (`OLLAMA_BASE_URL`, `OPENROUTER_BASE_URL`, `OPENAI_BASE_URL`, `MISTRAL_BASE_URL`, `GEMINI_OPENAI_BASE_URL`), each overridable by the same-named env var. They are not Settings fields.
 
 The Hugging Face model loads on first `get_provider()` call, not at process import. `/health` does not embed.

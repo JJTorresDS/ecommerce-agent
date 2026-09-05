@@ -12,6 +12,7 @@ from openai import OpenAI
 from tqdm import tqdm
 
 from ecommerce_agent.config import (
+    MISTRAL_BASE_URL,
     OLLAMA_BASE_URL,
     OPENAI_BASE_URL,
     OPENROUTER_BASE_URL,
@@ -23,38 +24,79 @@ QUESTIONS_PER_RECORD = 5
 DEFAULT_INPUT = PROJECT_ROOT / "evals" / "datasets" / "faq_ground_truth.json"
 DEFAULT_OUTPUT = PROJECT_ROOT / "evals" / "datasets" / "faq_eval_synthetic.json"
 
-SYSTEM_PROMPT = """\
+SYSTEM_PROMPT = """
 You are simulating a real online shopper who has a question. For each FAQ record
 provided, generate 5 different ways a shopper might naturally ask the question that
 record already answers.
 
-For each of the 5 questions, output one record containing:
+This data will be used to test whether a semantic embedding model can retrieve the
+right FAQ from phrasing alone, and to help decide if keyword/hybrid search is needed
+on top of it. So the batch of 5 questions per record should be a MIX:
+
+- 3 to 4 of the 5 should be lexically distant from the original "question" and
+  "answer" — conceptually faithful paraphrases that avoid reusing key content words.
+- The remaining 1 to 2 can naturally reuse some of the original keywords/phrases,
+  the way a real shopper often would (e.g. repeating the product name, the exact
+  term "shipping," "return," "warranty," etc.). These should still read like a
+  distinct, naturally-phrased question, not just the original title copy-pasted or
+  trivially reordered.
+
+For each record, work in three steps:
+
+STEP 1 — Extract the "core lexicon"
+List the key content words/phrases from the original "question" and "answer":
+nouns, verbs, product/domain terms, and any distinctive multi-word phrases. Ignore
+stopwords (a, the, is, do, my, order, etc.). This is the list you'll deliberately
+avoid in most questions, and deliberately allow back in for 1-2 of them.
+
+Example:
+question: "How long does standard shipping take?"
+answer: "Standard shipping takes 5-7 business days after the order is processed."
+core lexicon: ["shipping", "standard", "long", "take/takes", "5-7", "business days",
+"processed"]
+
+STEP 2 — Generate 5 synthetic questions
+Each one must be answerable using only the record's "answer" field — don't introduce
+details, numbers, or conditions it doesn't support.
+
+For the 3-4 "lexically distant" questions:
+- Replace core-lexicon terms with a synonym, a more general/specific description,
+  or a different framing (e.g. "shipping" -> "getting my stuff to me", "5-7 business
+  days" -> "a work-week or so", "processed" -> "you've got it going").
+- Only reuse a core term if there's truly no other way to say it (brand name,
+  required legal term, SKU) — this should be rare within these questions.
+
+For the 1-2 "keyword-overlap" questions:
+- Feel free to reuse the product/domain term(s) or other core lexicon naturally,
+  the way a shopper typing quickly actually would.
+- Still rephrase the surrounding sentence structure so it isn't just the original
+  question restated or lightly reordered — it should be a genuinely different way
+  of asking, just not one that avoids the obvious keyword.
+
+Across all 5, vary the angle and structure: e.g. a direct question, a "does anyone
+know if..." style, a quick/casual version, a slightly worried or urgent version, a
+specific/contextual scenario version. Write like a real person typing into a search
+bar, chat widget, or forum — casual and natural, not formal or robotic, and not so
+short it loses meaning. Don't use generic openers like "Hi, I wanted to ask...".
+No made-up personal details (names, order numbers, dates) unless the answer implies
+the shopper would need to mention one.
+
+STEP 3 — Self-check
+Confirm the mix is roughly 3-4 lexically distant / 1-2 keyword-overlap, and that
+even the keyword-overlap questions are phrased distinctly from the original and
+from each other. Do this silently — don't show your work in the output.
+
+OUTPUT FORMAT
+Return a JSON array. For each of the 5 synthetic questions per record, output one
+object:
 - "id": copied from the original record
 - "question": copied from the original record
 - "answer": copied from the original record
 - "synthetic_question": your generated question
+- "lexical_type": either "distant" or "overlap", indicating which bucket this
+  question falls into
 
-So each input record should produce 5 output records — identical except for
-"synthetic_question".
-
-Guidelines for writing the synthetic questions:
-- Each one must be answerable using only the record's "answer" field — don't
-  introduce details, numbers, or conditions that aren't supported by it.
-- Reuse as few exact words/phrases from the original "question" and "answer" as
-  possible. Paraphrase, don't rearrange.
-- Make each of the 5 phrasings meaningfully different from the others — vary the
-  angle, wording, and sentence structure (e.g., a direct question, a "does anyone
-  know if..." style, a quick/casual version, a slightly worried or urgent version,
-  a more specific/contextual version).
-- Write like a real person typing into a search bar, chat widget, or forum —
-  casual and natural, not formal or robotic, but also not so short that it loses
-  meaning (avoid one-or-two-word fragments; avoid long, over-explained paragraphs).
-- Don't use overly generic openers like "Hi, I wanted to ask..." — get straight to
-  the question, the way people actually type.
-- No made-up personal details (names, order numbers, dates) unless the original
-  answer implies the shopper would need to mention one.
-
-Return the output as a JSON array of these expanded records
+Output only the JSON array, no other text.
 """
 
 
@@ -131,6 +173,15 @@ def _chat_client() -> tuple[OpenAI, str]:
     if provider == "ollama":
         return (
             OpenAI(base_url=OLLAMA_BASE_URL, api_key="ollama"),
+            settings.model,
+        )
+    if provider == "mistral":
+        if not settings.api_key:
+            raise RuntimeError(
+                "MISTRAL_API_KEY is required when LLM_PROVIDER is mistral in config.py"
+            )
+        return (
+            OpenAI(api_key=settings.api_key, base_url=MISTRAL_BASE_URL),
             settings.model,
         )
     if not settings.api_key:

@@ -1,4 +1,6 @@
 import json
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
@@ -155,4 +157,32 @@ def test_generate_wraps_records_in_tqdm(tmp_path, monkeypatch):
     assert seen["items"] == source
     assert seen["kwargs"]["total"] == 1
     assert "FAQ" in seen["kwargs"]["desc"]
+
+
+def test_chat_client_uses_mistral(monkeypatch):
+    from evals import generate_eval_data as mod
+
+    captured = {}
+
+    def fake_openai(**kwargs):
+        captured.update(kwargs)
+        return Mock()
+
+    monkeypatch.setattr(
+        mod,
+        "settings",
+        SimpleNamespace(
+            llm_provider="mistral",
+            api_key="mistral-key",
+            model="mistral-small-2603",
+        ),
+    )
+    monkeypatch.setattr(mod, "OpenAI", fake_openai)
+
+    _client, model = mod._chat_client()
+
+    assert captured["api_key"] == "mistral-key"
+    assert captured["base_url"] == mod.MISTRAL_BASE_URL
+    assert "api.mistral.ai" in captured["base_url"]
+    assert model == "mistral-small-2603"
 

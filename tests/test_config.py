@@ -1,5 +1,6 @@
 import pytest
 
+from ecommerce_agent import config as config_mod
 from ecommerce_agent.config import (
     DEFAULT_EMBEDDING_MODELS,
     EMBEDDING_PROVIDER,
@@ -38,11 +39,11 @@ def test_provider_base_urls_are_module_constants():
     assert OLLAMA_BASE_URL.rstrip("/").endswith("11434/v1")
     assert "openrouter.ai" in OPENROUTER_BASE_URL
     assert "api.openai.com" in OPENAI_BASE_URL
-    assert "generativelanguage.googleapis.com" in GEMINI_OPENAI_BASE_URL
+    assert "api.mistral.ai" in config_mod.MISTRAL_BASE_URL
 
 
 def test_llm_and_embedding_providers_are_config_constants():
-    assert LLM_PROVIDER == "openai"
+    assert LLM_PROVIDER == "mistral"
     assert EMBEDDING_PROVIDER == "gemini"
     assert LOCAL_MODEL is False
 
@@ -54,13 +55,14 @@ def test_env_does_not_override_provider_constants(monkeypatch):
 
     loaded = _load_settings()
 
-    assert loaded.llm_provider == "openai"
+    assert loaded.llm_provider == "mistral"
     assert loaded.embedding_provider == "gemini"
 
 
 def test_load_settings_reads_secrets_and_model_from_env(monkeypatch):
     monkeypatch.setenv("MODEL", "gpt-4o")
     monkeypatch.setenv("OPENAI_MODEL", "should-not-win")
+    monkeypatch.setenv("MISTRAL_API_KEY", "mistral-test")
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
     monkeypatch.setenv("GEMINI_API_KEY", "gemini-test")
     monkeypatch.setenv("EMBEDDING_MODEL", "gemini-embedding-001")
@@ -69,10 +71,18 @@ def test_load_settings_reads_secrets_and_model_from_env(monkeypatch):
 
     assert loaded.llm_provider == LLM_PROVIDER
     assert loaded.model == "gpt-4o"
-    assert loaded.api_key == "sk-test"
+    assert loaded.api_key == "mistral-test"
     assert loaded.embedding_provider == EMBEDDING_PROVIDER
     assert loaded.embedding_model == DEFAULT_EMBEDDING_MODELS[EMBEDDING_PROVIDER]
     assert loaded.embedding_api_key == "gemini-test"
+
+
+def test_mistral_is_the_default_chat_backend(monkeypatch):
+    monkeypatch.delenv("MODEL", raising=False)
+    monkeypatch.delenv("MISTRAL_MODEL", raising=False)
+    loaded = _load_settings()
+    assert loaded.llm_provider == "mistral"
+    assert loaded.model == "mistral-small"
 
 
 def test_langfuse_tracing_is_a_config_constant():

@@ -15,6 +15,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+MISTRAL_BASE_URL = os.getenv("MISTRAL_BASE_URL", "https://api.mistral.ai/v1")
 GEMINI_OPENAI_BASE_URL = os.getenv(
     "GEMINI_OPENAI_BASE_URL",
     "https://generativelanguage.googleapis.com/v1beta/openai/",
@@ -24,15 +25,16 @@ _DEFAULT_CHAT_MODELS = {
     "ollama": "qwen2.5:7b",
     "openrouter": "nvidia/nemotron-3.5-lightning:free",
     "openai": "gpt-4o-mini",
+    "mistral": "mistral-small",
 }
 
-LLM_PROVIDER = "openai"
+LLM_PROVIDER = "mistral"
 EMBEDDING_PROVIDER = "gemini"
 LOCAL_MODEL = LLM_PROVIDER == "ollama"
 
 LANGFUSE_TRACING = True
 LANGFUSE_ENVIRONMENT = "development"
-LANGFUSE_BASE_URL = "https://cloud.langfuse.com"
+LANGFUSE_BASE_URL = os.getenv("LANGFUSE_BASE_URL")
 
 DEFAULT_EMBEDDING_MODELS = {
     "hf": "BAAI/bge-m3",
@@ -59,6 +61,7 @@ def _chat_model(provider: str) -> str:
         "openai": "OPENAI_MODEL",
         "ollama": "OLLAMA_MODEL",
         "openrouter": "OPENROUTER_MODEL",
+        "mistral": "MISTRAL_MODEL",
     }.get(provider)
     if env_name and (value := os.getenv(env_name)):
         return value
@@ -93,6 +96,8 @@ def _api_key(provider: str) -> str | None:
         return os.getenv("OPENAI_API_KEY")
     if provider == "openrouter":
         return os.getenv("OPEN_ROUTER_API_KEY")
+    if provider == "mistral":
+        return os.getenv("MISTRAL_API_KEY")
     return None
 
 

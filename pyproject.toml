@@ -10,6 +10,7 @@ dependencies = [
     "google-auth>=2.57.0",
     "jupyter>=1.1.1",
     "langfuse>=4.15.1",
+    "mlflow>=3.16.0",
     "openai>=2.53.0",
     "openai-agents>=0.19.4",
     "openinference-instrumentation-openai-agents>=2.2.0",

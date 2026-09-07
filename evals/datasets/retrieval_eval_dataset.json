@@ -1,0 +1,172 @@
+[
+  {
+    "id": 1,
+    "content": "## How long does shipping take?\nStandard shipping takes 3–5 business days; express is 1–2 business days.",
+    "synthetic_question": "What's the usual time frame for delivery?"
+  },
+  {
+    "id": 1,
+    "content": "## How long does shipping take?\nStandard shipping takes 3–5 business days; express is 1–2 business days.",
+    "synthetic_question": "Does anyone know how many days shipping usually takes?"
+  },
+  {
+    "id": 2,
+    "content": "## Do you ship internationally?\nNo, we only ship within Argentina.",
+    "synthetic_question": "Can I get my order delivered outside of Argentina?"
+  },
+  {
+    "id": 2,
+    "content": "## Do you ship internationally?\nNo, we only ship within Argentina.",
+    "synthetic_question": "Is international shipping an option with your service?"
+  },
+  {
+    "id": 3,
+    "content": "## How much does shipping cost?\nOrders over $50 ship free; otherwise a flat $5.99 fee applies.",
+    "synthetic_question": "Does anyone know if I have to pay for shipping on my order?"
+  },
+  {
+    "id": 3,
+    "content": "## How much does shipping cost?\nOrders over $50 ship free; otherwise a flat $5.99 fee applies.",
+    "synthetic_question": "I'm curious about the shipping fees—what do they look like?"
+  },
+  {
+    "id": 4,
+    "content": "## Can I track my order?\nYes, you'll receive a tracking link by email once your order ships.",
+    "synthetic_question": "Is there a way to see where my order is after it ships?"
+  },
+  {
+    "id": 4,
+    "content": "## Can I track my order?\nYes, you'll receive a tracking link by email once your order ships.",
+    "synthetic_question": "Does anyone know if I get an email with tracking info for my order?"
+  },
+  {
+    "id": 5,
+    "content": "## How do I find the right size for my child?\nCheck our size chart — we recommend measuring height and chest rather than going by age, since kids' proportions vary.",
+    "synthetic_question": "What’s the best way to determine my kid's size?"
+  },
+  {
+    "id": 5,
+    "content": "## How do I find the right size for my child?\nCheck our size chart — we recommend measuring height and chest rather than going by age, since kids' proportions vary.",
+    "synthetic_question": "Is there a size guide I can use to get the right fit for my child?"
+  },
+  {
+    "id": 6,
+    "content": "## What if the size doesn't fit?\nFree exchanges within 30 days — just choose a new size at checkout on your return.",
+    "synthetic_question": "If the size I picked isn't right, what do I do?"
+  },
+  {
+    "id": 6,
+    "content": "## What if the size doesn't fit?\nFree exchanges within 30 days — just choose a new size at checkout on your return.",
+    "synthetic_question": "Does anyone know what happens if I need a different size?"
+  },
+  {
+    "id": 7,
+    "content": "## What's your return policy?\nUnworn items with tags can be returned within 30 days for a full refund.",
+    "synthetic_question": "Can I send back items if I haven't worn them?"
+  },
+  {
+    "id": 7,
+    "content": "## What's your return policy?\nUnworn items with tags can be returned within 30 days for a full refund.",
+    "synthetic_question": "Does anyone know how long I have to return something for a refund?"
+  },
+  {
+    "id": 8,
+    "content": "## Can I return sale items?\nSale items are final sale / eligible for store credit only.",
+    "synthetic_question": "Are sale items returnable or just for store credit?"
+  },
+  {
+    "id": 8,
+    "content": "## Can I return sale items?\nSale items are final sale / eligible for store credit only.",
+    "synthetic_question": "Does anyone know if I can get a refund on items I bought on sale?"
+  },
+  {
+    "id": 9,
+    "content": "## How do I start a return?\nUse the \"Returns\" link in your order confirmation email, or enter your order number on our returns portal.",
+    "synthetic_question": "What’s the process for returning something I bought?"
+  },
+  {
+    "id": 9,
+    "content": "## How do I start a return?\nUse the \"Returns\" link in your order confirmation email, or enter your order number on our returns portal.",
+    "synthetic_question": "Does anyone know how I can initiate a return?"
+  },
+  {
+    "id": 10,
+    "content": "## Who pays for return shipping?\nReturns due to product defects are on us; all other returns are paid by the customer.",
+    "synthetic_question": "If I need to send something back that was defective, will I be charged for shipping?"
+  },
+  {
+    "id": 10,
+    "content": "## Who pays for return shipping?\nReturns due to product defects are on us; all other returns are paid by the customer.",
+    "synthetic_question": "Does anyone know who covers the shipping costs for returns?"
+  },
+  {
+    "id": 11,
+    "content": "## Are your fabrics safe for sensitive skin?\nYes — our fabrics are OEKO-TEX certified and free of harsh dyes and chemicals.",
+    "synthetic_question": "Can I trust your materials if I have sensitive skin?"
+  },
+  {
+    "id": 11,
+    "content": "## Are your fabrics safe for sensitive skin?\nYes — our fabrics are OEKO-TEX certified and free of harsh dyes and chemicals.",
+    "synthetic_question": "Does anyone know if your fabrics are okay for people with skin sensitivities?"
+  },
+  {
+    "id": 12,
+    "content": "## How should I wash these clothes?\nMachine wash cold, tumble dry low. Check the care label for specific items (some prints are wash-cold-only).",
+    "synthetic_question": "What’s the best way to clean these clothes?"
+  },
+  {
+    "id": 12,
+    "content": "## How should I wash these clothes?\nMachine wash cold, tumble dry low. Check the care label for specific items (some prints are wash-cold-only).",
+    "synthetic_question": "Can I machine wash these, or do I need to do something different?"
+  },
+  {
+    "id": 13,
+    "content": "## What payment methods do you accept?\nVisa, Mastercard, Amex, PayPal, Apple Pay, and Shop Pay.",
+    "synthetic_question": "Does anyone know what forms of payment are available?"
+  },
+  {
+    "id": 13,
+    "content": "## What payment methods do you accept?\nVisa, Mastercard, Amex, PayPal, Apple Pay, and Shop Pay.",
+    "synthetic_question": "I’m curious about the cards and services you guys take for purchases."
+  },
+  {
+    "id": 14,
+    "content": "## Can I change or cancel my order after placing it?\nOrders can be changed within 1 hour of placing them — after that, they're already in fulfillment.",
+    "synthetic_question": "Is it possible to modify my order after I've submitted it?"
+  },
+  {
+    "id": 14,
+    "content": "## Can I change or cancel my order after placing it?\nOrders can be changed within 1 hour of placing them — after that, they're already in fulfillment.",
+    "synthetic_question": "Does anyone know how long I have to cancel my order once it's been placed?"
+  },
+  {
+    "id": 15,
+    "content": "## Do you offer gift cards?\nYes, digital gift cards from $25–$200 are available.",
+    "synthetic_question": "Are there any gift cards available for purchase?"
+  },
+  {
+    "id": 15,
+    "content": "## Do you offer gift cards?\nYes, digital gift cards from $25–$200 are available.",
+    "synthetic_question": "Can I get a digital gift card, and what are the amounts?"
+  },
+  {
+    "id": 16,
+    "content": "## Do I need an account to order?\nNo, guest checkout is available, but an account lets you track orders and save favorites.",
+    "synthetic_question": "Can I place an order without signing up for an account?"
+  },
+  {
+    "id": 16,
+    "content": "## Do I need an account to order?\nNo, guest checkout is available, but an account lets you track orders and save favorites.",
+    "synthetic_question": "Is it possible to check out as a guest instead of making an account?"
+  },
+  {
+    "id": 17,
+    "content": "## How do I contact customer service?\nChat with us here, email support@jonas-demo.com, or call 1-800-JONAS-DEMO, Mon–Fri 9am–6pm.",
+    "synthetic_question": "What's the best way to reach out to customer support?"
+  },
+  {
+    "id": 17,
+    "content": "## How do I contact customer service?\nChat with us here, email support@jonas-demo.com, or call 1-800-JONAS-DEMO, Mon–Fri 9am–6pm.",
+    "synthetic_question": "Does anyone know how I can get in touch with customer service?"
+  }
+]

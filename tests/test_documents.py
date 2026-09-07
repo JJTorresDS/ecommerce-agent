@@ -344,3 +344,45 @@ def test_google_doc_body_emits_markdown_headings():
     )
     assert summary == "FAQ covering shipping, returns, and customer support."
     assert chunks == ["## Do you accept credit cards\nYes"]
+
+
+def test_credentials_resolve_relative_path_from_project_root(monkeypatch, tmp_path):
+    from ecommerce_agent.config import PROJECT_ROOT
+    from ecommerce_agent.integrations import google_docs as gdocs
+
+    captured = {}
+
+    def fake_from_file(path, scopes=None):
+        captured["path"] = path
+        captured["scopes"] = scopes
+        return Mock()
+
+    monkeypatch.setattr(
+        gdocs.service_account.Credentials,
+        "from_service_account_file",
+        fake_from_file,
+    )
+    monkeypatch.chdir(tmp_path)
+
+    gdocs._credentials("secrets/google_service_account.json")
+
+    assert captured["path"] == str(
+        PROJECT_ROOT / "secrets" / "google_service_account.json"
+    )
+
+
+def test_credentials_keep_absolute_path(monkeypatch, tmp_path):
+    from ecommerce_agent.integrations import google_docs as gdocs
+
+    captured = {}
+    absolute = str(tmp_path / "custom.json")
+
+    monkeypatch.setattr(
+        gdocs.service_account.Credentials,
+        "from_service_account_file",
+        lambda path, scopes=None: captured.update(path=path) or Mock(),
+    )
+
+    gdocs._credentials(absolute)
+
+    assert captured["path"] == absolute

@@ -48,7 +48,7 @@ Daily job: if Drive `modifiedTime` is newer than `documents.updated_at` / `embed
 uv run python -m ecommerce_agent.jobs.sync_google_docs
 ```
 
-Enable the Google Drive API and share the doc with the service account. Credentials default to `secrets/google_service_account.json` (`GOOGLE_SERVICE_ACCOUNT_FILE`).
+Enable the Google Drive API and share the doc with the service account. Credentials default to `secrets/google_service_account.json` at the project root (`GOOGLE_SERVICE_ACCOUNT_FILE`). Relative credential paths are resolved from the project root, so notebooks in `notebooks/` can use that same path.
 
 Two ingest endpoints:
 
@@ -76,6 +76,17 @@ uv run python evals/generate_eval_data.py
 ```
 
 Writes `evals/datasets/faq_eval_synthetic.json`. A tqdm bar advances once per FAQ. Optional `--input` / `--output` paths.
+
+Compare chat-provider latency and token usage (traced in MLflow experiment `ecommerce-agent-latency-tokens`):
+
+```bash
+uv run mlflow server
+uv run python evals/evaluate_llm_provider_latency.py
+```
+
+Same as `make evaluate_llms` for the second command.
+
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000) for runs and traces. The prompt is `Hi, I want to buy a gift for my 2.5 year old nephew`. Providers without an API key are skipped. Optional `--provider mistral` (repeatable). Tracking URI defaults to `http://127.0.0.1:5000`; override with `MLFLOW_TRACKING_URI`.
 
 ## LLM API smoke tests
 
@@ -114,4 +125,4 @@ Base URLs are constants in `ecommerce_agent/config.py` (`OLLAMA_BASE_URL`, `OPEN
 
 ## Layout
 
-Runtime Python lives in `ecommerce_agent/`. Unit tests live in `tests/` (`uv run pytest`). Live API pings live in `llm-api-tests/` (`make llm_api_tests`). As-built diagram: `architecture.md`. Agent workflow (TDD, docs): `AGENTS.md`. Proposal that this tree follows: `architecture_proposal.md`.
+Runtime Python lives in `ecommerce_agent/`. Unit tests live in `tests/` (`uv run pytest`). Live API pings live in `llm-api-tests/` (`make llm_api_tests`). LLM latency eval: `make evaluate_llms`. As-built diagram: `architecture.md`. Agent workflow (TDD, docs): `AGENTS.md`. Proposal that this tree follows: `architecture_proposal.md`.

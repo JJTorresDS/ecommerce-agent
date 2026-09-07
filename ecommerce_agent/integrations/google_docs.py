@@ -8,10 +8,12 @@ import re
 import sys
 from datetime import datetime, timezone
 
+from pathlib import Path
+
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-from ecommerce_agent.config import settings
+from ecommerce_agent.config import PROJECT_ROOT, settings
 
 SCOPES = [
     "https://www.googleapis.com/auth/documents.readonly",
@@ -36,9 +38,11 @@ def google_doc_id_from_url(url: str) -> str | None:
 
 
 def _credentials(creds_path: str | None = None):
-    path = creds_path or settings.google_service_account_file
+    path = Path(creds_path or settings.google_service_account_file)
+    if not path.is_absolute():
+        path = PROJECT_ROOT / path
     return service_account.Credentials.from_service_account_file(
-        path, scopes=SCOPES
+        str(path), scopes=SCOPES
     )
 
 

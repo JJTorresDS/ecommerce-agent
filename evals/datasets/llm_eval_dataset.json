@@ -1,0 +1,274 @@
+[
+  {
+    "inputs": {
+      "question": "What's the usual time frame for delivery?"
+    },
+    "expectations": {
+      "expected_response": "Standard shipping takes 3–5 business days; express is 1–2 business days."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know how many days shipping usually takes?"
+    },
+    "expectations": {
+      "expected_response": "Standard shipping takes 3–5 business days; express is 1–2 business days."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Can I get my order delivered outside of Argentina?"
+    },
+    "expectations": {
+      "expected_response": "No, we only ship within Argentina."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Is international shipping an option with your service?"
+    },
+    "expectations": {
+      "expected_response": "No, we only ship within Argentina."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know if I have to pay for shipping on my order?"
+    },
+    "expectations": {
+      "expected_response": "Orders over $50 ship free; otherwise a flat $5.99 fee applies."
+    }
+  },
+  {
+    "inputs": {
+      "question": "I'm curious about the shipping fees—what do they look like?"
+    },
+    "expectations": {
+      "expected_response": "Orders over $50 ship free; otherwise a flat $5.99 fee applies."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Is there a way to see where my order is after it ships?"
+    },
+    "expectations": {
+      "expected_response": "Yes, you'll receive a tracking link by email once your order ships."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know if I get an email with tracking info for my order?"
+    },
+    "expectations": {
+      "expected_response": "Yes, you'll receive a tracking link by email once your order ships."
+    }
+  },
+  {
+    "inputs": {
+      "question": "What’s the best way to determine my kid's size?"
+    },
+    "expectations": {
+      "expected_response": "Check our size chart — we recommend measuring height and chest rather than going by age, since kids' proportions vary."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Is there a size guide I can use to get the right fit for my child?"
+    },
+    "expectations": {
+      "expected_response": "Check our size chart — we recommend measuring height and chest rather than going by age, since kids' proportions vary."
+    }
+  },
+  {
+    "inputs": {
+      "question": "If the size I picked isn't right, what do I do?"
+    },
+    "expectations": {
+      "expected_response": "Free exchanges within 30 days — just choose a new size at checkout on your return."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know what happens if I need a different size?"
+    },
+    "expectations": {
+      "expected_response": "Free exchanges within 30 days — just choose a new size at checkout on your return."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Can I send back items if I haven't worn them?"
+    },
+    "expectations": {
+      "expected_response": "Unworn items with tags can be returned within 30 days for a full refund."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know how long I have to return something for a refund?"
+    },
+    "expectations": {
+      "expected_response": "Unworn items with tags can be returned within 30 days for a full refund."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Are sale items returnable or just for store credit?"
+    },
+    "expectations": {
+      "expected_response": "Sale items are final sale / eligible for store credit only."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know if I can get a refund on items I bought on sale?"
+    },
+    "expectations": {
+      "expected_response": "Sale items are final sale / eligible for store credit only."
+    }
+  },
+  {
+    "inputs": {
+      "question": "What’s the process for returning something I bought?"
+    },
+    "expectations": {
+      "expected_response": "Use the \"Returns\" link in your order confirmation email, or enter your order number on our returns portal."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know how I can initiate a return?"
+    },
+    "expectations": {
+      "expected_response": "Use the \"Returns\" link in your order confirmation email, or enter your order number on our returns portal."
+    }
+  },
+  {
+    "inputs": {
+      "question": "If I need to send something back that was defective, will I be charged for shipping?"
+    },
+    "expectations": {
+      "expected_response": "Returns due to product defects are on us; all other returns are paid by the customer."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know who covers the shipping costs for returns?"
+    },
+    "expectations": {
+      "expected_response": "Returns due to product defects are on us; all other returns are paid by the customer."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Can I trust your materials if I have sensitive skin?"
+    },
+    "expectations": {
+      "expected_response": "Yes — our fabrics are OEKO-TEX certified and free of harsh dyes and chemicals."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know if your fabrics are okay for people with skin sensitivities?"
+    },
+    "expectations": {
+      "expected_response": "Yes — our fabrics are OEKO-TEX certified and free of harsh dyes and chemicals."
+    }
+  },
+  {
+    "inputs": {
+      "question": "What’s the best way to clean these clothes?"
+    },
+    "expectations": {
+      "expected_response": "Machine wash cold, tumble dry low. Check the care label for specific items (some prints are wash-cold-only)."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Can I machine wash these, or do I need to do something different?"
+    },
+    "expectations": {
+      "expected_response": "Machine wash cold, tumble dry low. Check the care label for specific items (some prints are wash-cold-only)."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know what forms of payment are available?"
+    },
+    "expectations": {
+      "expected_response": "Visa, Mastercard, Amex, PayPal, Apple Pay, and Shop Pay."
+    }
+  },
+  {
+    "inputs": {
+      "question": "I’m curious about the cards and services you guys take for purchases."
+    },
+    "expectations": {
+      "expected_response": "Visa, Mastercard, Amex, PayPal, Apple Pay, and Shop Pay."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Is it possible to modify my order after I've submitted it?"
+    },
+    "expectations": {
+      "expected_response": "Orders can be changed within 1 hour of placing them — after that, they're already in fulfillment."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know how long I have to cancel my order once it's been placed?"
+    },
+    "expectations": {
+      "expected_response": "Orders can be changed within 1 hour of placing them — after that, they're already in fulfillment."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Are there any gift cards available for purchase?"
+    },
+    "expectations": {
+      "expected_response": "Yes, digital gift cards from $25–$200 are available."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Can I get a digital gift card, and what are the amounts?"
+    },
+    "expectations": {
+      "expected_response": "Yes, digital gift cards from $25–$200 are available."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Can I place an order without signing up for an account?"
+    },
+    "expectations": {
+      "expected_response": "No, guest checkout is available, but an account lets you track orders and save favorites."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Is it possible to check out as a guest instead of making an account?"
+    },
+    "expectations": {
+      "expected_response": "No, guest checkout is available, but an account lets you track orders and save favorites."
+    }
+  },
+  {
+    "inputs": {
+      "question": "What's the best way to reach out to customer support?"
+    },
+    "expectations": {
+      "expected_response": "Chat with us here, email support@jonas-demo.com, or call 1-800-JONAS-DEMO, Mon–Fri 9am–6pm."
+    }
+  },
+  {
+    "inputs": {
+      "question": "Does anyone know how I can get in touch with customer service?"
+    },
+    "expectations": {
+      "expected_response": "Chat with us here, email support@jonas-demo.com, or call 1-800-JONAS-DEMO, Mon–Fri 9am–6pm."
+    }
+  }
+]

@@ -5,6 +5,10 @@ def test_chat_ui(client):
     assert "<html" in response.text.lower()
     assert "session_id" in response.text
     assert "sessionStorage" in response.text
+    assert "/feedback" in response.text
+    assert "thumbs-up" in response.text
+    assert "thumbs-down" in response.text
+    assert "turn_id" in response.text
 
 
 def test_ecommerce_catalog_ui(client):

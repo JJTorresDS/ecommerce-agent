@@ -219,7 +219,13 @@ __marimo__/
 
 # MLflow local tracking
 mlruns/
+mlartifacts/
 mlflow.db
 mlflow.db-journal
+mlflow.db-wal
+mlflow.db-shm
 
 /secrets/
+
+# macOS
+.DS_Store

@@ -18,7 +18,10 @@ def test_ask_with_dummy_product_question(client, monkeypatch, dummy_products):
     )
 
     assert response.status_code == 200
-    assert response.json() == {"answer": result.final_output}
+    assert response.json() == {
+        "answer": result.final_output,
+        "turn_id": "test-turn-id",
+    }
     ask_route.Runner.run.assert_awaited_once()
     args = ask_route.Runner.run.await_args.args
     assert vest["name"] in args[1]
@@ -29,7 +32,7 @@ def test_ask_requires_question(client):
     assert response.status_code == 422
 
 
-def test_ask_accepts_optional_session_id(client, monkeypatch):
+def test_ask_passes_postgres_session_when_session_id_present(client, monkeypatch):
     result = Mock()
     result.final_output = "ok"
     monkeypatch.setattr(ask_route.Runner, "run", AsyncMock(return_value=result))
@@ -40,7 +43,22 @@ def test_ask_accepts_optional_session_id(client, monkeypatch):
     )
 
     assert response.status_code == 200
-    assert response.json() == {"answer": "ok"}
+    assert response.json() == {"answer": "ok", "turn_id": "test-turn-id"}
+    kwargs = ask_route.Runner.run.await_args.kwargs
+    session = kwargs["session"]
+    assert session.session_id == "chat-session-1"
+
+
+def test_ask_omits_session_when_session_id_missing(client, monkeypatch):
+    result = Mock()
+    result.final_output = "ok"
+    monkeypatch.setattr(ask_route.Runner, "run", AsyncMock(return_value=result))
+
+    response = client.post("/ask", json={"question": "hello"})
+
+    assert response.status_code == 200
+    kwargs = ask_route.Runner.run.await_args.kwargs
+    assert kwargs.get("session") is None
 
 
 def test_ask_records_langfuse_span_when_enabled(client, monkeypatch):
@@ -70,7 +88,7 @@ def test_ask_records_langfuse_span_when_enabled(client, monkeypatch):
     )
 
     assert response.status_code == 200
-    assert response.json() == {"answer": "traced answer"}
+    assert response.json() == {"answer": "traced answer", "turn_id": "test-turn-id"}
     langfuse.start_as_current_observation.assert_called_once()
     kwargs = langfuse.start_as_current_observation.call_args.kwargs
     assert kwargs["name"] == "ask"

@@ -3,15 +3,20 @@
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from ecommerce_agent.agent.memory import ensure_memory_tables
 from ecommerce_agent.db import engine
 from ecommerce_agent.embeddings import get_provider
+from ecommerce_agent.monitoring.store import ensure_monitoring_tables
 
 
 def init_db() -> None:
     """Create product and document tables if they do not exist.
 
-    If any of those tables already exist, raises RuntimeError and leaves
-    the database unchanged. Drop them manually to recreate the schema.
+    Enables the pgvector extension first. If any of those tables already
+    exist, still creates conversation memory tables (`agent_sessions`,
+    `agent_messages`) and production monitoring tables (`ask_turns`,
+    `conversation_feedback`) if they are missing, then raises RuntimeError. Drop
+    the catalog tables manually to recreate that schema.
     """
     provider = get_provider()
     with Session(engine) as session:
@@ -26,12 +31,16 @@ def init_db() -> None:
             """)
         ).scalars().all()
         if existing:
+            ensure_memory_tables(session)
+            ensure_monitoring_tables(session)
+            session.commit()
             raise RuntimeError(
                 "Refusing to initialize: these tables already exist: "
                 f"{', '.join(existing)}. Drop them manually if you want to "
                 "recreate the schema, then retry."
             )
 
+        session.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         session.execute(
             text(f"""
                 CREATE TABLE product_embeddings (
@@ -89,4 +98,6 @@ def init_db() -> None:
                 USING hnsw (embedding vector_cosine_ops)
             """)
         )
+        ensure_memory_tables(session)
+        ensure_monitoring_tables(session)
         session.commit()

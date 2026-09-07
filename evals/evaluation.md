@@ -1,12 +1,15 @@
 # Evaluations
 
-Offline scripts in `evals/`. They are **not** on the chat/ingest path and are **not** collected by `uv run pytest`. Run them from the repo root. Start MLflow first for anything that logs traces or scores:
+Offline scripts in `evals/`. They are **not** on the chat/ingest path and are **not** collected by `uv run pytest`. MLflow is the `mlflow` service in `docker-compose.yml` (`make docker-up`). UI: [http://127.0.0.1:5000](http://127.0.0.1:5000).
+
+From the host, evals use `MLFLOW_TRACKING_URI` default `http://127.0.0.1:5000`. From Compose:
 
 ```bash
-uv run mlflow server
+docker compose run --rm app uv run --frozen --no-dev python evals/evaluate_llm_response.py \
+  --provider mistral --experiment ecommerce-agent-llm_eval
 ```
 
-UI: [http://127.0.0.1:5000](http://127.0.0.1:5000). Override with `MLFLOW_TRACKING_URI`.
+Host-only MLflow (no Compose): `uv run mlflow server`. Override the URI with `MLFLOW_TRACKING_URI`.
 
 `--experiment` is required on MLflow evals. If that name already exists, the new run is added to it; otherwise MLflow creates the experiment. Name experiments `ecommerce-agent-{kind}` (`llm_eval`, `search_eval`). Reuse the same name to compare runs; a new name starts a separate experiment.
 

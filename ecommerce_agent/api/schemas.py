@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 _DOCUMENT_URL_EXAMPLES = [
@@ -9,12 +11,30 @@ class Question(BaseModel):
     question: str
     session_id: str | None = Field(
         default=None,
-        description="Optional chat session id so Langfuse can group turns.",
+        description=(
+            "Optional chat session id. Turns with the same id are stored in "
+            "Postgres and replayed as conversation history. Also used to group "
+            "Langfuse traces."
+        ),
     )
 
 
 class Answer(BaseModel):
     answer: str
+    turn_id: str
+
+
+class FeedbackIn(BaseModel):
+    session_id: str
+    rating: Literal["up", "down"]
+    turn_id: str | None = Field(
+        default=None,
+        description="Optional ask turn id from POST /ask so Grafana can join feedback to a reply.",
+    )
+
+
+class FeedbackOut(BaseModel):
+    ok: bool = True
 
 
 class GoogleDocIngest(BaseModel):

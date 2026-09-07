@@ -101,6 +101,35 @@
       background: #aaa;
       cursor: default;
     }
+
+    .feedback {
+      align-self: flex-start;
+      display: flex;
+      gap: 6px;
+      margin: -4px 0 4px 4px;
+    }
+
+    .thumbs-up,
+    .thumbs-down {
+      border: none;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+
+    .thumbs-up.selected,
+    .thumbs-down.selected {
+      background: #dcf8c6;
+    }
+
+    .thumbs-up:disabled,
+    .thumbs-down:disabled {
+      cursor: default;
+      opacity: 0.7;
+    }
   </style>
 </head>
 <body>
@@ -137,6 +166,46 @@
       return div;
     }
 
+    function addFeedbackControls(turnId) {
+      const row = document.createElement('div');
+      row.className = 'feedback';
+      const up = document.createElement('button');
+      up.type = 'button';
+      up.className = 'thumbs-up';
+      up.setAttribute('aria-label', 'Helpful');
+      up.textContent = '👍';
+      const down = document.createElement('button');
+      down.type = 'button';
+      down.className = 'thumbs-down';
+      down.setAttribute('aria-label', 'Not helpful');
+      down.textContent = '👎';
+      async function send(rating, button) {
+        up.disabled = true;
+        down.disabled = true;
+        try {
+          await fetch('/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: chatSessionId(),
+              turn_id: turnId,
+              rating
+            })
+          });
+          button.classList.add('selected');
+        } catch (err) {
+          up.disabled = false;
+          down.disabled = false;
+        }
+      }
+      up.onclick = () => send('up', up);
+      down.onclick = () => send('down', down);
+      row.appendChild(up);
+      row.appendChild(down);
+      chat.appendChild(row);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
     async function ask() {
       const question = questionInput.value.trim();
       if (!question) return;
@@ -158,6 +227,7 @@
         const data = await res.json();
         thinkingBubble.textContent = data.answer;
         thinkingBubble.classList.remove('thinking');
+        addFeedbackControls(data.turn_id);
       } catch (err) {
         thinkingBubble.textContent = 'Error: ' + err.message;
         thinkingBubble.classList.remove('thinking');

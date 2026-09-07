@@ -51,6 +51,13 @@ FAQ_STRUCTURED_TEXT = (
 )
 
 
+@pytest.fixture(autouse=True)
+def _stub_record_ask_turn(monkeypatch):
+    from ecommerce_agent.api.routes import ask as ask_route
+
+    monkeypatch.setattr(ask_route, "record_ask_turn", lambda **kwargs: "test-turn-id")
+
+
 def _load_dummy_products() -> list[dict]:
     path = PROJECT_ROOT / "db" / "seed_products.py"
     spec = importlib.util.spec_from_file_location("seed_products", path)

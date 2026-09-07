@@ -2,6 +2,10 @@
 
 Chat UI and tools over Ollama, OpenRouter, OpenAI, or Mistral, with a pgvector catalog and knowledge base.
 
+
+
+Here is a video link demoing the app: [https://www.loom.com/share/13a709814da14644ba6a22112deef59f](https://www.loom.com/share/13a709814da14644ba6a22112deef59f)
+
 ## Run
 
 Copy `.env.example` to `.env` and fill in API keys. Then start Postgres (pgvector), the API, MLflow, Prometheus, and Grafana:
@@ -143,13 +147,17 @@ Same as `uv run pytest llm-api-tests -v`. One provider:
 uv run pytest llm-api-tests/test_mistral.py -v
 ```
 
-| File | API |
-|---|---|
-| `test_mistral.py` | Mistral chat (`MISTRAL_API_KEY`) |
-| `test_openai.py` | OpenAI chat + embeddings (`OPENAI_API_KEY`) |
-| `test_openrouter.py` | OpenRouter chat (`OPEN_ROUTER_API_KEY`) |
-| `test_ollama.py` | Local Ollama (skips if the server is down) |
-| `test_gemini.py` | Gemini embeddings (`GEMINI_API_KEY`) |
+
+| File                 | API                                         |
+| -------------------- | ------------------------------------------- |
+| `test_mistral.py`    | Mistral chat (`MISTRAL_API_KEY`)            |
+| `test_openai.py`     | OpenAI chat + embeddings (`OPENAI_API_KEY`) |
+| `test_openrouter.py` | OpenRouter chat (`OPEN_ROUTER_API_KEY`)     |
+| `test_ollama.py`     | Local Ollama (skips if the server is down)  |
+| `test_gemini.py`     | Gemini embeddings (`GEMINI_API_KEY`)        |
+
+
+
 
 ## Config
 
@@ -159,7 +167,7 @@ See `.env` for secrets (`POSTGRES_*`, `OPENAI_API_KEY`, `OPEN_ROUTER_API_KEY`, `
 - `MODEL` — optional env override for the chat model. Defaults: Ollama `qwen2.5:7b`, OpenRouter `nvidia/nemotron-3.5-lightning:free`, OpenAI `gpt-4o-mini`, Mistral `mistral-small`. Provider-specific `OLLAMA_MODEL` / `OPENROUTER_MODEL` / `OPENAI_MODEL` / `MISTRAL_MODEL` still work as fallbacks.
 - `OPENAI_API_KEY` / `OPEN_ROUTER_API_KEY` / `MISTRAL_API_KEY` — required for those chat backends. Ollama uses a dummy key.
 - `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` — Langfuse tracing for `POST /ask` (OpenAI Agents SDK via OpenInference). Enabled when `LANGFUSE_TRACING` is true in `config.py` and both keys are set. Optional `LANGFUSE_BASE_URL` (EU default `https://cloud.langfuse.com`; US is `https://us.cloud.langfuse.com`). Chat turns send `session_id` so conversations group in Langfuse Sessions and so Postgres can replay history. Agents SDK tracing stays on so tool calls and generations nest under the `ask` span.
-- `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` — Grafana at http://localhost:3000. Provisioned dashboard **Ecommerce agent production** shows ask latency, word counts, and thumbs feedback. Prometheus scrapes `GET /metrics`.
+- `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` — Grafana at [http://localhost:3000](http://localhost:3000). Provisioned dashboard **Ecommerce agent production** shows ask latency, word counts, and thumbs feedback. Prometheus scrapes `GET /metrics`.
 - `AGENT_TRACING=true` — OpenAI Agents SDK traces (separate from Langfuse; off by default)
 - `EMBEDDING_PROVIDER` — `hf`, `gemini`, or `openai` in `config.py` (currently `gemini`). Needs `GEMINI_API_KEY` or `OPENAI_API_KEY` as required. `EMBEDDING_MODEL` defaults live in `DEFAULT_EMBEDDING_MODELS`: HF `BAAI/bge-m3` (1024-d), Gemini `gemini-embedding-001` (768-d), OpenAI `text-embedding-3-small` (1536-d). `OPENAI_EMBEDDING_MODEL` is still a fallback for OpenAI. A provider/model mismatch raises `ValueError` telling you to check `config.py`. Vector width is fixed when tables are created; do not switch providers without dropping those tables.
 

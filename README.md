@@ -69,24 +69,28 @@ Text under `h1` becomes `documents.summary` unless you pass `"summary"`. Each `h
 
 ## Evals
 
-Ground truth lives in `evals/datasets/faq_ground_truth.json`. Generate five shopper-style paraphrases per FAQ (uses `LLM_PROVIDER` from `config.py`):
+How the datasets and scripts fit together, plus run commands: `evals/evaluation.md`.
+
+Generate synthetic FAQ questions:
 
 ```bash
 uv run python evals/generate_eval_data.py
 ```
 
-Writes `evals/datasets/faq_eval_synthetic.json`. A tqdm bar advances once per FAQ. Optional `--input` / `--output` paths.
+Search hit-rate (Postgres with ingested FAQ chunks). `--search-type` is required and is logged to MLflow as `search_type`:
 
-Compare chat-provider latency and token usage (traced in MLflow experiment `ecommerce-agent-latency-tokens`):
+```bash
+make evaluate_retrieval SEARCH_TYPE=genai_001_embedding
+```
+
+Agent answer correctness (`build_agent()`, one row at a time, 1s pause after each). `--provider` and `--experiment` are required; optional `--n` limits how many rows run. Each MLflow run is named `llm-eval-{provider}-{model}` from the built agent:
 
 ```bash
 uv run mlflow server
-uv run python evals/evaluate_llm_provider_latency.py
+make evaluate_llms PROVIDER=mistral EXPERIMENT=ecommerce-agent-llm_eval
 ```
 
-Same as `make evaluate_llms` for the second command.
-
-Open [http://127.0.0.1:5000](http://127.0.0.1:5000) for runs and traces. The prompt is `Hi, I want to buy a gift for my 2.5 year old nephew`. Providers without an API key are skipped. Optional `--provider mistral` (repeatable). Tracking URI defaults to `http://127.0.0.1:5000`; override with `MLFLOW_TRACKING_URI`.
+MLflow UI: [http://127.0.0.1:5000](http://127.0.0.1:5000). Tracking URI defaults to that host; override with `MLFLOW_TRACKING_URI`.
 
 ## LLM API smoke tests
 
@@ -125,4 +129,4 @@ Base URLs are constants in `ecommerce_agent/config.py` (`OLLAMA_BASE_URL`, `OPEN
 
 ## Layout
 
-Runtime Python lives in `ecommerce_agent/`. Unit tests live in `tests/` (`uv run pytest`). Live API pings live in `llm-api-tests/` (`make llm_api_tests`). LLM latency eval: `make evaluate_llms`. As-built diagram: `architecture.md`. Agent workflow (TDD, docs): `AGENTS.md`. Proposal that this tree follows: `architecture_proposal.md`.
+Runtime Python lives in `ecommerce_agent/`. Unit tests live in `tests/` (`uv run pytest`). Live API pings live in `llm-api-tests/` (`make llm_api_tests`). Eval runbook: `evals/evaluation.md`. As-built diagram: `architecture.md`. Agent workflow (TDD, docs): `AGENTS.md`. Proposal that this tree follows: `architecture_proposal.md`.

@@ -29,10 +29,10 @@ ecommerce-agent/
 ├── static/                       # chat + catalog HTML
 ├── db/                           # init_vector_db.sql, seed, download_model
 ├── notebooks/
-├── evals/                        # FAQ ground truth, synthetic generator, LLM latency eval
+├── evals/                        # datasets, eval scripts, evaluation.md runbook
 ├── llm-api-tests/                # live chat/embedding API pings (not in uv run pytest)
 ├── tests/
-├── Makefile                      # make run_app, make llm_api_tests, make evaluate_llms
+├── Makefile                      # make run_app, make llm_api_tests, make evaluate_llms PROVIDER=... EXPERIMENT=..., make evaluate_retrieval SEARCH_TYPE=...
 ├── AGENTS.md                     # TDD + keep README and architecture.md current
 └── secrets/                      # gitignored service account
 ```
@@ -214,9 +214,13 @@ The sync job skips ids that start with `file_`. It does not `ALTER` tables.
 
 ## Evals
 
-`evals/datasets/faq_ground_truth.json` holds gold FAQ question/answer pairs. `evals/generate_eval_data.py` calls the same LLM provider as the agent (Ollama, OpenRouter, OpenAI, or Mistral), shows a tqdm bar per FAQ, and writes five `synthetic_question` rows per FAQ to `evals/datasets/faq_eval_synthetic.json`. It is not on the ask/ingest path.
+Runbook: `evals/evaluation.md`. Scripts are not on the ask/ingest path.
 
-`evals/evaluate_llm_provider_latency.py` sends a fixed shopper prompt (`Hi, I want to buy a gift for my 2.5 year old nephew`) to each integrated chat backend (OpenAI, OpenRouter, Mistral, Ollama). It records latency and token counts, skips providers with no API key, and writes MLflow traces plus nested runs under experiment `ecommerce-agent-latency-tokens`. Default tracking URI is `http://127.0.0.1:5000` (`uv run mlflow server`); override with `MLFLOW_TRACKING_URI`. OpenAI SDK calls are autologged. Not on the ask/ingest path.
+`evals/datasets/faq_ground_truth.json` holds gold FAQ chunks. `evals/generate_eval_data.py` writes two synthetic shopper questions per FAQ to `evals/datasets/retrieval_eval_dataset.json` and `evals/datasets/llm_eval_dataset.json`.
+
+`evals/evaluate_knowledge_search.py` scores `search_faq_knowledgebase` with hit@1, hit@k, MRR, and mean latency. `--search-type` is required (e.g. `genai_001_embedding`). `evals/evaluate_knowledge_search_mlflow.py` logs the same metrics plus params `search_type` and `embedding_model`; `--experiment` is required and reuses that MLflow experiment if it exists (otherwise creates it). Run names are `search-eval-{search_type}-{embedding_model}`. `make evaluate_retrieval SEARCH_TYPE=...` runs the terminal script.
+
+`evals/evaluate_llm_response.py` runs `build_agent()` (same tools and instructions as `POST /ask`) on those questions, one row at a time, then pauses 1 second after each prediction. `--provider` and `--experiment` are required; optional `--n` evaluates only the first n rows. The chat model is the provider default in `config.py`. After the agent is built, `provider` and `model` are read from it (`AgentLlmIdentity`) and logged as MLflow params, with mean `latency_ms` and token totals as metrics. Run names are `llm-eval-{provider}-{model}`. MLflow Correctness scores answers on the named experiment (created if missing). Default tracking URI is `http://127.0.0.1:5000` (`uv run mlflow server`); override with `MLFLOW_TRACKING_URI`. Needs ingested FAQ chunks in Postgres. `make evaluate_llms PROVIDER=... EXPERIMENT=...` runs this script (`N=...` passes `--n`). Experiment names: `ecommerce-agent-{kind}` (`llm_eval`, `search_eval`).
 
 ## LLM API smoke tests
 
@@ -281,7 +285,7 @@ erDiagram
 | `EMBEDDING_MODEL` | Optional `.env` override (`settings.embedding_model`). Defaults in `DEFAULT_EMBEDDING_MODELS`: `BAAI/bge-m3`, `gemini-embedding-001`, `text-embedding-3-small`. Fallback: `OPENAI_EMBEDDING_MODEL`. Using another provider's default model, or constructing a backend that does not match `EMBEDDING_PROVIDER`, raises `ValueError` (`Provider model mismatch, please check your config.py file`) |
 | `GOOGLE_SERVICE_ACCOUNT_FILE` | Defaults to `secrets/google_service_account.json` at the project root. Relative `creds_path` values passed to `get_doc` / `get_doc_text` are also resolved from the project root |
 | `AGENT_TRACING` | `true` enables OpenAI Agents SDK platform traces (separate from Langfuse) |
-| `MLFLOW_TRACKING_URI` | Optional. Used by `evals/evaluate_llm_provider_latency.py`. Defaults to `http://127.0.0.1:5000` |
+| `MLFLOW_TRACKING_URI` | Optional. Used by evals that log to MLflow. Defaults to `http://127.0.0.1:5000` |
 
 Provider base URLs are module constants in `ecommerce_agent/config.py` (`OLLAMA_BASE_URL`, `OPENROUTER_BASE_URL`, `OPENAI_BASE_URL`, `MISTRAL_BASE_URL`, `GEMINI_OPENAI_BASE_URL`), each overridable by the same-named env var. They are not Settings fields.
 

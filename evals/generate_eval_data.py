@@ -31,14 +31,16 @@ from openai import OpenAI
 
 from dotenv import load_dotenv
 
+from ecommerce_agent.config import PROJECT_ROOT
+
 load_dotenv(override=True)
 
 # ---- config -----------------------------------------------------------
 MODEL = "gpt-4o-mini"
 QUESTIONS_PER_RECORD = 2
-INPUT_PATH = Path("evals/datasets/faq_ground_truth.json")
-RETRIEVAL_OUTPUT_PATH = Path("evals/datasets/retrieval_eval_dataset.json")
-MLFLOW_OUTPUT_PATH = Path("evals/datasets/agent_eval_dataset.json")
+INPUT_PATH = PROJECT_ROOT / "evals" / "datasets" / "faq_ground_truth.json"
+RETRIEVAL_OUTPUT_PATH = PROJECT_ROOT / "evals" / "datasets" / "retrieval_eval_dataset.json"
+MLFLOW_OUTPUT_PATH = PROJECT_ROOT / "evals" / "datasets" / "llm_eval_dataset.json"
 
 client = OpenAI()  # reads OPENAI_API_KEY from env
 

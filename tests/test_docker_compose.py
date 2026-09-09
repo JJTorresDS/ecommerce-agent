@@ -39,6 +39,8 @@ def test_compose_defines_postgres_app_and_mlflow():
     assert "9090:9090" in text
     assert "prom/prometheus" in text
     assert "grafana/grafana" in text
+    assert "./static:/app/static" in text
+    assert "./ecommerce_agent:/app/ecommerce_agent" in text
 
 
 def test_inspect_sql_lists_catalog_tables():

@@ -62,6 +62,9 @@ services:
       GOOGLE_SERVICE_ACCOUNT_FILE: /app/secrets/google_service_account.json
     volumes:
       - ./secrets:/app/secrets:ro
+      - ./static:/app/static:ro
+      - ./ecommerce_agent:/app/ecommerce_agent
+
     depends_on:
       postgres:
         condition: service_healthy

@@ -27,7 +27,7 @@ CREATE_FEEDBACK_SQL = """
         id SERIAL PRIMARY KEY,
         session_id TEXT NOT NULL,
         turn_id TEXT,
-        rating TEXT NOT NULL CHECK (rating IN ('up', 'down')),
+        rating INTEGER NOT NULL CHECK (rating IN (1, -1)),
         created_at TIMESTAMPTZ DEFAULT now()
     )
 """
@@ -42,11 +42,31 @@ CREATE_FEEDBACK_INDEX_SQL = """
     ON conversation_feedback (created_at DESC)
 """
 
+FEEDBACK_RATING_TYPE_SQL = """
+    SELECT data_type
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'conversation_feedback'
+      AND column_name = 'rating'
+"""
+
+DROP_FEEDBACK_SQL = "DROP TABLE IF EXISTS conversation_feedback"
+
+
+def _drop_legacy_text_feedback(session: Session) -> None:
+    """Replace 'up'/'down' text ratings with integer 1/-1. Does not ALTER."""
+    row = session.execute(text(FEEDBACK_RATING_TYPE_SQL)).first()
+    if row is None:
+        return
+    if row[0] != "integer":
+        session.execute(text(DROP_FEEDBACK_SQL))
+
 
 def ensure_monitoring_tables(session: Session | None = None) -> None:
     """Create production monitoring tables if missing. Safe on existing DBs."""
     if session is not None:
         session.execute(text(CREATE_ASK_TURNS_SQL))
+        _drop_legacy_text_feedback(session)
         session.execute(text(CREATE_FEEDBACK_SQL))
         session.execute(text(CREATE_ASK_TURNS_INDEX_SQL))
         session.execute(text(CREATE_FEEDBACK_INDEX_SQL))
@@ -54,6 +74,7 @@ def ensure_monitoring_tables(session: Session | None = None) -> None:
 
     with Session(engine) as owned:
         owned.execute(text(CREATE_ASK_TURNS_SQL))
+        _drop_legacy_text_feedback(owned)
         owned.execute(text(CREATE_FEEDBACK_SQL))
         owned.execute(text(CREATE_ASK_TURNS_INDEX_SQL))
         owned.execute(text(CREATE_FEEDBACK_INDEX_SQL))
@@ -100,7 +121,7 @@ def persist_ask_turn(
 def persist_feedback(
     *,
     session_id: str,
-    rating: str,
+    rating: int,
     turn_id: str | None = None,
 ) -> None:
     ensure_monitoring_tables()

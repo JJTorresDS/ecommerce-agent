@@ -102,27 +102,41 @@
       cursor: default;
     }
 
-    .feedback {
+    .agent-turn {
       align-self: flex-start;
+      max-width: 70%;
       display: flex;
+      flex-direction: column;
       gap: 6px;
-      margin: -4px 0 4px 4px;
+    }
+
+    .agent-turn .bubble {
+      max-width: 100%;
+    }
+
+    .feedback {
+      display: flex;
+      gap: 8px;
     }
 
     .thumbs-up,
     .thumbs-down {
-      border: none;
+      border: 1px solid #075e54;
       background: #ffffff;
+      color: #075e54;
       border-radius: 16px;
-      padding: 4px 8px;
+      padding: 6px 12px;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
+      font-family: inherit;
+      line-height: 1.2;
       box-shadow: 0 1px 1px rgba(0,0,0,0.1);
     }
 
     .thumbs-up.selected,
     .thumbs-down.selected {
-      background: #dcf8c6;
+      background: #075e54;
+      color: #ffffff;
     }
 
     .thumbs-up:disabled,
@@ -161,29 +175,37 @@
       const div = document.createElement('div');
       div.className = 'bubble ' + sender + (isThinking ? ' thinking' : '');
       div.textContent = text;
+      if (sender === 'agent') {
+        const wrap = document.createElement('div');
+        wrap.className = 'agent-turn';
+        wrap.appendChild(div);
+        chat.appendChild(wrap);
+        chat.scrollTop = chat.scrollHeight;
+        return div;
+      }
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
       return div;
     }
 
-    function addFeedbackControls(turnId) {
+    function addFeedbackControls(bubble, turnId) {
       const row = document.createElement('div');
       row.className = 'feedback';
       const up = document.createElement('button');
       up.type = 'button';
       up.className = 'thumbs-up';
       up.setAttribute('aria-label', 'Helpful');
-      up.textContent = '👍';
+      up.textContent = '👍 Helpful';
       const down = document.createElement('button');
       down.type = 'button';
       down.className = 'thumbs-down';
       down.setAttribute('aria-label', 'Not helpful');
-      down.textContent = '👎';
+      down.textContent = '👎 Not helpful';
       async function send(rating, button) {
         up.disabled = true;
         down.disabled = true;
         try {
-          await fetch('/feedback', {
+          const res = await fetch('/feedback', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -192,17 +214,24 @@
               rating
             })
           });
+          if (!res.ok) throw new Error('Feedback failed: ' + res.status);
           button.classList.add('selected');
+
         } catch (err) {
           up.disabled = false;
           down.disabled = false;
         }
       }
-      up.onclick = () => send('up', up);
-      down.onclick = () => send('down', down);
+      up.onclick = () => send(1, up);
+      down.onclick = () => send(-1, down);
       row.appendChild(up);
       row.appendChild(down);
-      chat.appendChild(row);
+      const wrap = bubble.parentElement;
+      if (wrap && wrap.classList.contains('agent-turn')) {
+        wrap.appendChild(row);
+      } else {
+        chat.appendChild(row);
+      }
       chat.scrollTop = chat.scrollHeight;
     }
 
@@ -227,7 +256,7 @@
         const data = await res.json();
         thinkingBubble.textContent = data.answer;
         thinkingBubble.classList.remove('thinking');
-        addFeedbackControls(data.turn_id);
+        addFeedbackControls(thinkingBubble, data.turn_id);
       } catch (err) {
         thinkingBubble.textContent = 'Error: ' + err.message;
         thinkingBubble.classList.remove('thinking');

@@ -9,6 +9,12 @@ def test_chat_ui(client):
     assert "thumbs-up" in response.text
     assert "thumbs-down" in response.text
     assert "turn_id" in response.text
+    assert "Helpful" in response.text
+    assert "Not helpful" in response.text
+    assert "agent-turn" in response.text
+    assert "send(1," in response.text
+    assert "send(-1," in response.text
+    assert "Feedback failed" in response.text
 
 
 def test_ecommerce_catalog_ui(client):

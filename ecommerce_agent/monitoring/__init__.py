@@ -36,7 +36,7 @@ def record_ask_turn(
 def record_feedback(
     *,
     session_id: str,
-    rating: str,
+    rating: int,
     turn_id: str | None = None,
 ) -> None:
     persist_feedback(session_id=session_id, rating=rating, turn_id=turn_id)

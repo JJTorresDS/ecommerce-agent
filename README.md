@@ -21,7 +21,9 @@ make docker-seed
 
 Same as `docker compose up --build -d`, then `docker compose run --rm app uv run --frozen --no-dev python db/seed_products.py`.
 
-Open [http://localhost:8000/](http://localhost:8000/) for the chat UI (thumbs up/down after each reply), [http://localhost:8000/ecommerce](http://localhost:8000/ecommerce) for the catalog, [http://localhost:8000/docs](http://localhost:8000/docs) for the API, [http://localhost:5000](http://localhost:5000) for MLflow evals, [http://localhost:3000](http://localhost:3000) for Grafana production dashboards (login `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD`, default `admin` / `admin`), [http://localhost:9090](http://localhost:9090) for Prometheus, and [http://localhost:5050](http://localhost:5050) for pgAdmin.
+Open [http://localhost:8000/](http://localhost:8000/) for the chat UI (**Helpful** / **Not helpful** under each agent reply), [http://localhost:8000/ecommerce](http://localhost:8000/ecommerce) for the catalog, [http://localhost:8000/docs](http://localhost:8000/docs) for the API, [http://localhost:5000](http://localhost:5000) for MLflow evals, [http://localhost:3000](http://localhost:3000) for Grafana production dashboards (login `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD`, default `admin` / `admin`), [http://localhost:9090](http://localhost:9090) for Prometheus, and [http://localhost:5050](http://localhost:5050) for pgAdmin.
+
+Compose bind-mounts `./static` and `./ecommerce_agent` into the app container, so chat HTML and API code update without an image rebuild. Recreate the app container once to pick up those mounts (`docker compose up -d app`), then hard-refresh the browser.
 
 The first image build installs CPU PyTorch and can take several minutes. Python is pinned to `>=3.12,<3.14` (`pyproject.toml`) because Torch has no 3.14 Windows wheels; Compose runs `uv run --frozen` so app/MLflow do not re-resolve on start.
 
@@ -33,9 +35,9 @@ To run the API on the host instead of Compose (`make run_app`), keep `POSTGRES_H
 
 ## Database
 
-Compose Postgres is empty until you seed. `init_db()` enables the pgvector extension, then sizes `VECTOR(...)` from the active provider in `config.py` (`hf` → 1024, `gemini` → 768, `openai` → 1536). Gemini's native vectors are 3072-d; the app requests (and truncates + L2-normalizes) down to 768 so they fit. The same call creates conversation tables `agent_sessions` and `agent_messages` and production tables `ask_turns` and `conversation_feedback` if they are missing, including when the product catalog already exists.
+Compose Postgres is empty until you seed. `init_db()` enables the pgvector extension, then sizes `VECTOR(...)` from the active provider in `config.py` (`hf` → 1024, `gemini` → 768, `openai` → 1536). Gemini's native vectors are 3072-d; the app requests (and truncates + L2-normalizes) down to 768 so they fit. The same call creates conversation tables `agent_sessions` and `agent_messages` and production tables `ask_turns` and `conversation_feedback` if they are missing, including when the product catalog already exists. `conversation_feedback.rating` is `1` (helpful) or `-1` (not helpful). The next `/ask` or `/feedback` drops a leftover `'up'` / `'down'` text-rating table and recreates it as integer (no `ALTER`).
 
-The chat UI keeps a `session_id` in `sessionStorage` and sends it on `POST /ask`. The agent loads and stores turns for that id in Postgres so follow-ups keep context. Omit `session_id` for a one-off question. The first stored turn also creates the tables if seed has not run yet. Each reply returns a `turn_id`; use 👍 / 👎 on the bubble to `POST /feedback`. Production latency, word counts, and feedback go to Prometheus + Grafana. Offline evals stay in MLflow. Langfuse still traces tool calls in the cloud.
+The chat UI keeps a `session_id` in `sessionStorage` and sends it on `POST /ask`. The agent loads and stores turns for that id in Postgres so follow-ups keep context. Omit `session_id` for a one-off question. The first stored turn also creates the tables if seed has not run yet. Each reply returns a `turn_id`; use **Helpful** / **Not helpful** on the bubble to `POST /feedback` with `rating` 1 or -1. Production latency, word counts, and feedback go to Prometheus + Grafana. Offline evals stay in MLflow. Langfuse still traces tool calls in the cloud.
 
 ```bash
 make docker-seed

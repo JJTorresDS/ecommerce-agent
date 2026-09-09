@@ -45,7 +45,7 @@ ecommerce-agent/
 
 ## Docker Compose
 
-`docker-compose.yml` runs **postgres** (`pgvector/pgvector:pg16`), **app** (this Dockerfile, port 8000), **mlflow** (same image, port 5000, volume `mlflow-data`), **prometheus** (`prom/prometheus`, port 9090), **grafana** (`grafana/grafana`, port 3000, provisioned dashboards), and **pgadmin** (`dpage/pgadmin4`, port 5050). The app service sets `POSTGRES_HOST=postgres` and `MLFLOW_TRACKING_URI=http://mlflow:5000`. Google credentials are mounted from `./secrets`. Profile `ollama` adds a local Ollama daemon. The image is Python 3.12; `pyproject.toml` sets `requires-python = ">=3.12,<3.14"` so uv does not try to resolve Torch for 3.14/Windows. App and MLflow start with `uv run --frozen --no-dev` so container start uses `uv.lock` and does not re-resolve. Schema is created by `make docker-seed` (`db/seed_products.py` → `init_db()`), not `db/init_vector_db.sql`. `init_db()` also ensures conversation tables `agent_sessions` and `agent_messages` and production tables `ask_turns` and `conversation_feedback` with `CREATE IF NOT EXISTS` when the catalog already exists. `make docker-pgadmin` is `docker compose up -d pgadmin` (no `--build`). `db/inspect.sql` lists tables and row counts (`make docker-inspect`).
+`docker-compose.yml` runs **postgres** (`pgvector/pgvector:pg16`), **app** (this Dockerfile, port 8000), **mlflow** (same image, port 5000, volume `mlflow-data`), **prometheus** (`prom/prometheus`, port 9090), **grafana** (`grafana/grafana`, port 3000, provisioned dashboards), and **pgadmin** (`dpage/pgadmin4`, port 5050). The app service sets `POSTGRES_HOST=postgres` and `MLFLOW_TRACKING_URI=http://mlflow:5000`. Google credentials are mounted from `./secrets`. The chat/catalog HTML is bind-mounted from `./static` and the Python package from `./ecommerce_agent` so UI and API changes apply without rebuilding the image. Profile `ollama` adds a local Ollama daemon. The image is Python 3.12; `pyproject.toml` sets `requires-python = ">=3.12,<3.14"` so uv does not try to resolve Torch for 3.14/Windows. App and MLflow start with `uv run --frozen --no-dev` so container start uses `uv.lock` and does not re-resolve. Schema is created by `make docker-seed` (`db/seed_products.py` → `init_db()`), not `db/init_vector_db.sql`. `init_db()` also ensures conversation tables `agent_sessions` and `agent_messages` and production tables `ask_turns` and `conversation_feedback` with `CREATE IF NOT EXISTS` when the catalog already exists. If `conversation_feedback.rating` is still text (`'up'` / `'down'`), monitoring drops that table and recreates it with integer `1` / `-1` (no `ALTER`). `make docker-pgadmin` is `docker compose up -d pgadmin` (no `--build`). `db/inspect.sql` lists tables and row counts (`make docker-inspect`).
 
 Evals stay in **MLflow**. Production latency, word counts, and thumbs feedback are in **Grafana** (Prometheus scrape of `GET /metrics`, plus Postgres for recent feedback rows). **Langfuse** remains the cloud trace UI for tool calls and generations.
 
@@ -179,7 +179,7 @@ flowchart TB
 - **retrieval** is SELECT + cosine search.
 - **ingest** is the only writer of embeddings. Catalog `init_db()` still refuses to recreate product/document tables that already exist, but it always ensures conversation memory tables and production monitoring tables.
 - **agent.memory** is the writer of chat turns (`agent_sessions`, `agent_messages`). Tables are `CREATE IF NOT EXISTS` so existing catalogs keep working.
-- **monitoring** records production `ask_turns` (latency, word counts) and `conversation_feedback` (thumbs up/down), and exposes Prometheus series on `GET /metrics`.
+- **monitoring** records production `ask_turns` (latency, word counts) and `conversation_feedback` (thumbs: `rating` 1 or -1), and exposes Prometheus series on `GET /metrics`. A leftover text-rating `conversation_feedback` table is dropped and recreated as integer.
 - **jobs** reuse ingest + integrations. Not a second write path.
 - **config.py** is the only module that reads environment variables.
 
@@ -187,7 +187,7 @@ flowchart TB
 
 For FAQ / support, the agent lists document summaries first, then searches with that `document_id`. It must not invent contact details or policies. `search_faq_knowledgebase` requires `document_id` unless exactly one document exists.
 
-The chat UI sends a `session_id` (browser `sessionStorage`). `POST /ask` passes `Runner.run(..., session=PostgresSession(session_id))` so prior turns are loaded from Postgres and new items are stored. Omit `session_id` for a single-turn call (evals do this). Each reply includes a `turn_id`; thumbs up/down on the bubble `POST /feedback` for that turn. Latency and word counts are recorded for Grafana.
+The chat UI sends a `session_id` (browser `sessionStorage`). `POST /ask` passes `Runner.run(..., session=PostgresSession(session_id))` so prior turns are loaded from Postgres and new items are stored. Omit `session_id` for a single-turn call (evals do this). Each reply includes a `turn_id`; thumbs on the bubble `POST /feedback` with `rating` 1 (up) or -1 (down). Latency and word counts are recorded for Grafana.
 
 ```mermaid
 sequenceDiagram
@@ -293,7 +293,7 @@ Runbook: `evals/evaluation.md`. Scripts are not on the ask/ingest path.
 
 ## Data model and indexes
 
-New databases (`db/init_vector_db.sql` and `ingest.schema.init_db`) use **HNSW**. Existing databases that still have IVFFlat `lists = 100` keep working because retrieval sets `ivfflat.probes = 100` per query. No live `ALTER`. Conversation memory tables are additive (`CREATE TABLE IF NOT EXISTS`).
+New databases (`db/init_vector_db.sql` and `ingest.schema.init_db`) use **HNSW**. Existing databases that still have IVFFlat `lists = 100` keep working because retrieval sets `ivfflat.probes = 100` per query. No live `ALTER`. Conversation memory tables are additive (`CREATE TABLE IF NOT EXISTS`). `conversation_feedback` is dropped and recreated when `rating` is still text (`'up'` / `'down'`) so new rows store integer `1` / `-1`.
 
 `embedding VECTOR(...)` width is fixed at `CREATE`. Python `init_db()` enables `CREATE EXTENSION IF NOT EXISTS vector`, then uses `provider.embedding_dim` (`hf` / bge-m3: 1024; `gemini`: 768; `openai` / text-embedding-3-small: 1536). `db/init_vector_db.sql` is hardcoded `VECTOR(1024)` for HF. Gemini's API returns 3072-d vectors; `GeminiEmbeddingProvider` requests `dimensions=768` and, if the API still returns 3072, truncates and L2-normalizes (Matryoshka). Switching providers after tables exist requires dropping `product_embeddings`, `document_embeddings`, and `documents`.
 
@@ -361,7 +361,7 @@ erDiagram
         serial id PK
         text session_id
         text turn_id
-        text rating
+        int rating
         timestamptz created_at
     }
 ```

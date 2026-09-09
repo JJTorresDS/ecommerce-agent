@@ -26,7 +26,9 @@ class Answer(BaseModel):
 
 class FeedbackIn(BaseModel):
     session_id: str
-    rating: Literal["up", "down"]
+    rating: Literal[1, -1] = Field(
+        description="1 for thumbs up, -1 for thumbs down.",
+    )
     turn_id: str | None = Field(
         default=None,
         description="Optional ask turn id from POST /ask so Grafana can join feedback to a reply.",

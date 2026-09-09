@@ -2,7 +2,10 @@
 
 Chat UI and tools over Ollama, OpenRouter, OpenAI, or Mistral, with a pgvector catalog and knowledge base.
 
+## Why
 
+While modern recommender systems excel at internet scale, they fundamentally fall short for small-to-medium e-commerce store owners managing 200 to 1,000 products. Traditional collaborative filtering algorithms require millions of data points (clicks, purchases, and ratings) to find meaningful patterns. For a small merchant/seller, the data matrix is incredibly empty—a problem known as extreme data sparsity. If a store has 500 products and only a few hundred visitors a month, a deep learning or matrix factorization model cannot learn what "similar users" want because the overlap in user behavior is virtually zero. Additionally, small businesses lack the massive engineering budgets, data pipelines, and computational resources required to deploy and maintain these heavy, data-hungry algorithmic infrastructures.
+This project discusses an alternative approach for small/medium ecommerce using a computationally and cost effective architecture leveraging Agentic AI with embeddings as the engine behind product recommendations.
 
 Here is a video link demoing the app: [https://www.loom.com/share/13a709814da14644ba6a22112deef59f](https://www.loom.com/share/13a709814da14644ba6a22112deef59f)
 

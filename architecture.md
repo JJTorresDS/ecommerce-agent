@@ -19,7 +19,7 @@ ecommerce-agent/
 │   │   ├── app.py                # FastAPI factory
 │   │   ├── schemas.py
 │   │   └── routes/               # ask, feedback, products, documents, health, metrics
-│   ├── agent/                    # llm, tracing (Langfuse), memory.py, instructions.md, hooks, factory
+│   ├── agent/                    # llm, tracing (Langfuse), memory.py, instructions.md, instructions_v1.md, hooks, factory
 │   ├── monitoring/               # Prometheus metrics + Postgres ask_turns / feedback
 │   ├── tools/                    # catalog.py, knowledge.py
 │   ├── retrieval/                # read-only products + documents
@@ -28,7 +28,7 @@ ecommerce-agent/
 │   ├── integrations/google_docs.py
 │   └── jobs/sync_google_docs.py
 ├── static/                       # chat + catalog HTML
-├── db/                           # init_vector_db.sql, seed, inspect.sql, pgadmin/servers.json, download_model
+├── db/                           # schema.md, init_vector_db.sql, seed, inspect.sql, pgadmin/servers.json, download_model
 ├── notebooks/
 ├── evals/                        # datasets, eval scripts, evaluation.md runbook
 ├── llm-api-tests/                # live chat/embedding API pings (not in uv run pytest)
@@ -40,6 +40,7 @@ ecommerce-agent/
 ├── .env.example                  # secrets template (copy to .env)
 ├── Makefile                      # make docker-up, docker-seed, docker-pgadmin, docker-inspect, docker-down, run_app, evals
 ├── AGENTS.md                     # TDD + keep README and architecture.md current
+├── todo.md                       # scratch backlog
 └── secrets/                      # gitignored service account
 ```
 
@@ -69,107 +70,55 @@ flowchart LR
 
 ## System overview
 
+Three paths share Postgres. Tool names, ingest endpoints, and sequence detail are in **Ask flow** and **Ingest and sync** below. `config.settings` is omitted here (see **Layer rules**).
+
 ```mermaid
 flowchart TB
-    subgraph Clients
-        ChatUI["Chat UI<br/>GET /"]
-        CatalogUI["Catalog UI<br/>GET /ecommerce"]
-        FastAPI["FastAPI / curl<br/>GET /docs"]
+    subgraph paths [Runtime]
+        direction LR
+
+        subgraph askPath [Ask]
+            direction TB
+            Chat["Chat UI"]
+            Ask["POST /ask"]
+            Agent["agent: factory, LLM,<br/>memory, Langfuse"]
+            Tools["tools → retrieval"]
+            Chat --> Ask --> Agent --> Tools
+        end
+
+        subgraph ingestPath [Ingest]
+            direction TB
+            Src["Catalog UI / OpenAPI"]
+            IngEP["POST /products<br/>POST /documents"]
+            Ing["ingest + chunking"]
+            Job["sync_google_docs"]
+            GDocs["Google Docs / Drive"]
+            Src --> IngEP --> Ing
+            Job --> GDocs --> Ing
+        end
+
+        subgraph opsPath [Metrics]
+            direction TB
+            FB["POST /feedback"]
+            Met["GET /metrics"]
+            Mon["monitoring"]
+            Obs["Prometheus → Grafana"]
+            FB --> Mon --> Obs
+            Met --> Obs
+        end
     end
 
-    subgraph API["ecommerce_agent.api"]
-        Ask["POST /ask"]
-        Feedback["POST /feedback"]
-        MetricsEP["GET /metrics"]
-        Upload["POST /products/upload"]
-        GDocEP["POST /documents/google-doc"]
-        GDocStruct["POST /documents/google-doc/structured"]
-        Health["GET /health"]
-    end
+    Emb["embeddings: HF | Gemini | OpenAI"]
+    PG[(PostgreSQL + pgvector)]
 
-    subgraph AgentPkg["ecommerce_agent.agent"]
-        Factory["factory.agent"]
-        LLM["llm: Ollama | OpenRouter | OpenAI | Mistral"]
-        Trace["Langfuse + OpenInference"]
-        Memory["memory.PostgresSession"]
-    end
-
-    subgraph ToolsPkg["ecommerce_agent.tools"]
-        TList["list_knowledgebase_documents"]
-        TFaq["search_faq_knowledgebase"]
-        TSearch["search_products"]
-        TSku["get_item_details"]
-    end
-
-    subgraph Retrieval["retrieval — read only"]
-        RProd["products.search / get_by_sku"]
-        RDocs["documents.list / search"]
-    end
-
-    subgraph IngestPkg["ingest — write only"]
-        ParseCSV["parse_products_csv"]
-        IProd["products.upsert"]
-        IDocs["upsert_document / structured"]
-        Chunk["chunking"]
-    end
-
-    subgraph Integrations["integrations.google_docs"]
-        Fetch["title + markdown headings"]
-        Drive["Drive modifiedTime"]
-    end
-
-    subgraph Monitoring["ecommerce_agent.monitoring"]
-        PromMetrics["Prometheus histograms / counters"]
-        Store["ask_turns + conversation_feedback"]
-    end
-
-    Job["jobs.sync_google_docs"]
-    Config["config.settings"]
-    Engine["db.engine"]
-    Embed["embeddings.get_provider<br/>lazy HF | Gemini | OpenAI"]
-    PG["PostgreSQL + pgvector"]
-    Prom["Prometheus"]
-    Grafana["Grafana dashboards"]
-    Langfuse["Langfuse traces"]
-
-    ChatUI --> Ask
-    ChatUI --> Feedback
-    CatalogUI --> Upload
-    FastAPI --> Ask & Feedback & Upload & GDocEP & GDocStruct & Health & MetricsEP
-
-    Ask --> Factory
-    Ask --> Memory
-    Ask --> PromMetrics
-    Ask --> Store
-    Feedback --> PromMetrics
-    Feedback --> Store
-    MetricsEP --> PromMetrics
-    Prom --> MetricsEP
-    Grafana --> Prom
-    Grafana --> PG
-    Factory --> LLM
-    Factory --> Trace
-    Trace --> Langfuse
-    Factory --> TList & TFaq & TSearch & TSku
-
-    TList --> RDocs
-    TFaq --> RDocs
-    TSearch --> RProd
-    TSku --> RProd
-
-    Upload --> ParseCSV --> IProd
-    GDocEP --> Fetch --> IDocs
-    GDocStruct --> Fetch
-    IDocs --> Chunk
-    Job --> Drive
-    Job --> Fetch
-    Job --> IDocs
-
-    RProd & RDocs & IProd & IDocs --> Embed
-    RProd & RDocs & IProd & IDocs --> Engine --> PG
-    Memory --> Engine
-    Store --> Engine
-    Factory & Fetch & Embed --> Config
+    Ask --> Mon
+    Tools --> Emb
+    Ing --> Emb
+    Agent --> PG
+    Tools --> PG
+    Ing --> PG
+    Mon --> PG
+    Obs --> PG
 ```
 
 ## Layer rules
@@ -292,6 +241,8 @@ Runbook: `evals/evaluation.md`. Scripts are not on the ask/ingest path.
 `llm-api-tests/` pings each chat and embedding API with a one-token prompt. It is not on the ask/ingest path and is not collected by `uv run pytest`. `make llm_api_tests` runs the folder; a missing key (or unreachable Ollama) skips that test. Shared helpers live in `llm-api-tests/providers.py`.
 
 ## Data model and indexes
+
+Column-level types and purpose: `db/schema.md`. The ER diagram below matches `init_db()` / memory / monitoring helpers.
 
 New databases (`db/init_vector_db.sql` and `ingest.schema.init_db`) use **HNSW**. Existing databases that still have IVFFlat `lists = 100` keep working because retrieval sets `ivfflat.probes = 100` per query. No live `ALTER`. Conversation memory tables are additive (`CREATE TABLE IF NOT EXISTS`). `conversation_feedback` is dropped and recreated when `rating` is still text (`'up'` / `'down'`) so new rows store integer `1` / `-1`.
 

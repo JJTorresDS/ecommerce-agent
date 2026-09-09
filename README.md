@@ -69,7 +69,7 @@ Switching `EMBEDDING_PROVIDER` after tables exist needs a drop and re-seed — p
 DROP TABLE IF EXISTS product_embeddings, document_embeddings, documents CASCADE;
 ```
 
-The SQL file `db/init_vector_db.sql` is the HF/1024-d schema for a manual `psql` load. Prefer `seed_products.py` so width matches `config.py`.
+The SQL file `db/init_vector_db.sql` is the HF/1024-d schema for a manual `psql` load. Prefer `seed_products.py` so width matches `config.py`. Table columns and purpose: `db/schema.md`.
 
 Download the local embedding model once if you use `EMBEDDING_PROVIDER = "hf"` (offline HF after that):
 
@@ -178,6 +178,19 @@ See `.env` for secrets (`POSTGRES_*`, `OPENAI_API_KEY`, `OPEN_ROUTER_API_KEY`, `
 
 Base URLs are constants in `ecommerce_agent/config.py` (`OLLAMA_BASE_URL`, `OPENROUTER_BASE_URL`, `OPENAI_BASE_URL`, `MISTRAL_BASE_URL`, `GEMINI_OPENAI_BASE_URL`) with optional env overrides.
 
+## Docs
+
+| File | What it is |
+|---|---|
+| `README.md` | How to run, configure, ingest, and use the app (this file) |
+| `architecture.md` | As-built layout, diagrams, layer rules, data model, env flags |
+| `AGENTS.md` | Contributor workflow: TDD and keep README + architecture in sync |
+| `db/schema.md` | Postgres table schemas and why each exists |
+| `evals/evaluation.md` | Offline eval datasets, scripts, and MLflow commands |
+| `ecommerce_agent/agent/instructions.md` | Live system prompt loaded by `build_agent()` |
+| `ecommerce_agent/agent/instructions_v1.md` | Previous system prompt (not loaded at runtime) |
+| `todo.md` | Scratch backlog (not as-built) |
+
 ## Layout
 
-Runtime Python lives in `ecommerce_agent/`. The stack is `docker compose up` (`Dockerfile` + `docker-compose.yml`). Unit tests live in `tests/` (`uv run pytest`). Live API pings live in `llm-api-tests/` (`make llm_api_tests`). Eval runbook: `evals/evaluation.md`. As-built diagram: `architecture.md`. Agent workflow (TDD, docs): `AGENTS.md`. Proposal that this tree follows: `architecture_proposal.md`.
+Runtime Python lives in `ecommerce_agent/`. The stack is `docker compose up` (`Dockerfile` + `docker-compose.yml`). Unit tests live in `tests/` (`uv run pytest`). Live API pings live in `llm-api-tests/` (`make llm_api_tests`). Markdown files are listed under **Docs** above.

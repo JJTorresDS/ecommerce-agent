@@ -45,6 +45,36 @@ def test_readme_references_all_markdown_files():
     assert missing == [], f"README.md must mention: {', '.join(missing)}"
 
 
+def test_evaluation_md_embeds_asset_images():
+    text = (ROOT / "evals" / "evaluation.md").read_text(encoding="utf-8")
+    for name in (
+        "terminal-search-eval.png",
+        "mlflow-agent-eval.png",
+        "grafana-monitoring.png",
+        "langraph-observability.png",
+    ):
+        assert f"../assets/{name}" in text
+
+
+def test_readme_overview_embeds_app_screenshots():
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    overview = readme.find("## Overview")
+    run = readme.find("## Run")
+    assert overview != -1
+    assert run != -1
+    assert overview < run
+    for name in ("app_ui.png", "app_api.png"):
+        assert f"assets/{name}" in readme
+    for needle in (
+        "product",
+        "document",
+        "embedding",
+        "memory",
+        "feedback",
+    ):
+        assert needle in readme[overview:run].lower()
+
+
 def test_db_schema_doc_covers_all_tables():
     schema = (ROOT / "db" / "schema.md").read_text(encoding="utf-8")
     for table in TABLES:

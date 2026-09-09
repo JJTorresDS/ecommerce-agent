@@ -9,6 +9,22 @@ This project discusses an alternative approach for small/medium ecommerce using 
 
 Here is a video link demoing the app: [https://www.loom.com/share/13a709814da14644ba6a22112deef59f](https://www.loom.com/share/13a709814da14644ba6a22112deef59f)
 
+## Overview
+
+A shopper chats with a store assistant. The agent uses tools over a pgvector catalog and a Google Doc knowledge base instead of collaborative filtering.
+
+- **Product search** — each SKU is stored as an embedding (`product_embeddings`). Catalog questions call `search_products` / `get_item_details`. Upload a CSV with `POST /products/upload`, or browse the dummy catalog at `/ecommerce`.
+- **Document search** — FAQ and policy text live in `documents` / `document_embeddings`. The agent lists summaries, then searches with `search_faq_knowledgebase`. Ingest a Google Doc by URL (`POST /documents/google-doc` or `/structured`).
+- **Memory** — the chat UI keeps a `session_id` in `sessionStorage` and sends it on `POST /ask`. Turns are stored in Postgres (`agent_sessions` / `agent_messages`) so follow-ups keep context.
+- **Feedback** — each reply includes a `turn_id`. **Helpful** / **Not helpful** posts `rating` `1` or `-1` to `POST /feedback`.
+- **Observability** — production latency, word counts, and thumbs go to Prometheus + Grafana. Langfuse traces tool calls. Offline retrieval and answer evals stay in MLflow.
+
+Chat UI (`GET /`) and OpenAPI (`GET /docs`):
+
+![Chat UI: product recommendations and thumbs feedback](assets/app_ui.png)
+
+![Ecommerce Agent API: ask, feedback, ingest, metrics](assets/app_api.png)
+
 ## Run
 
 Copy `.env.example` to `.env` and fill in API keys. Then start Postgres (pgvector), the API, MLflow, Prometheus, and Grafana:
@@ -23,7 +39,7 @@ Same as `docker compose up --build -d`, then `docker compose run --rm app uv run
 
 Open [http://localhost:8000/](http://localhost:8000/) for the chat UI (**Helpful** / **Not helpful** under each agent reply), [http://localhost:8000/ecommerce](http://localhost:8000/ecommerce) for the catalog, [http://localhost:8000/docs](http://localhost:8000/docs) for the API, [http://localhost:5000](http://localhost:5000) for MLflow evals, [http://localhost:3000](http://localhost:3000) for Grafana production dashboards (login `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD`, default `admin` / `admin`), [http://localhost:9090](http://localhost:9090) for Prometheus, and [http://localhost:5050](http://localhost:5050) for pgAdmin.
 
-Compose bind-mounts `./static` and `./ecommerce_agent` into the app container, so chat HTML and API code update without an image rebuild. Recreate the app container once to pick up those mounts (`docker compose up -d app`), then hard-refresh the browser.
+Compose bind-mounts `./static` and `./ecommerce_agent` into the app container, so chat HTML and API code update without an image rebuild. Uvicorn does not reload on its own: recreate the app process (`docker compose up -d --force-recreate app`), then hard-refresh `/docs` (Swagger caches `openapi.json`).
 
 The first image build installs CPU PyTorch and can take several minutes. Python is pinned to `>=3.12,<3.14` (`pyproject.toml`) because Torch has no 3.14 Windows wheels; Compose runs `uv run --frozen` so app/MLflow do not re-resolve on start.
 
@@ -108,7 +124,7 @@ Text under `h1` becomes `documents.summary` unless you pass `"summary"`. Each `h
 
 ## Evals
 
-How the datasets and scripts fit together, plus run commands: `evals/evaluation.md`.
+How the datasets and scripts fit together, plus run commands and screenshots: `evals/evaluation.md`.
 
 Generate synthetic FAQ questions:
 

@@ -15,6 +15,8 @@ def test_chat_ui(client):
     assert "send(1," in response.text
     assert "send(-1," in response.text
     assert "Feedback failed" in response.text
+    assert "Ecommerce Agent" in response.text
+    assert "Local Agent" not in response.text
 
 
 def test_ecommerce_catalog_ui(client):

@@ -30,6 +30,7 @@ ecommerce-agent/
 ├── static/                       # chat + catalog HTML
 ├── db/                           # schema.md, init_vector_db.sql, seed, inspect.sql, pgadmin/servers.json, download_model
 ├── notebooks/
+├── assets/                       # screenshots for README and evals/evaluation.md
 ├── evals/                        # datasets, eval scripts, evaluation.md runbook
 ├── llm-api-tests/                # live chat/embedding API pings (not in uv run pytest)
 ├── grafana/                      # provisioned datasources + production dashboard
@@ -46,7 +47,7 @@ ecommerce-agent/
 
 ## Docker Compose
 
-`docker-compose.yml` runs **postgres** (`pgvector/pgvector:pg16`), **app** (this Dockerfile, port 8000), **mlflow** (same image, port 5000, volume `mlflow-data`), **prometheus** (`prom/prometheus`, port 9090), **grafana** (`grafana/grafana`, port 3000, provisioned dashboards), and **pgadmin** (`dpage/pgadmin4`, port 5050). The app service sets `POSTGRES_HOST=postgres` and `MLFLOW_TRACKING_URI=http://mlflow:5000`. Google credentials are mounted from `./secrets`. The chat/catalog HTML is bind-mounted from `./static` and the Python package from `./ecommerce_agent` so UI and API changes apply without rebuilding the image. Profile `ollama` adds a local Ollama daemon. The image is Python 3.12; `pyproject.toml` sets `requires-python = ">=3.12,<3.14"` so uv does not try to resolve Torch for 3.14/Windows. App and MLflow start with `uv run --frozen --no-dev` so container start uses `uv.lock` and does not re-resolve. Schema is created by `make docker-seed` (`db/seed_products.py` → `init_db()`), not `db/init_vector_db.sql`. `init_db()` also ensures conversation tables `agent_sessions` and `agent_messages` and production tables `ask_turns` and `conversation_feedback` with `CREATE IF NOT EXISTS` when the catalog already exists. If `conversation_feedback.rating` is still text (`'up'` / `'down'`), monitoring drops that table and recreates it with integer `1` / `-1` (no `ALTER`). `make docker-pgadmin` is `docker compose up -d pgadmin` (no `--build`). `db/inspect.sql` lists tables and row counts (`make docker-inspect`).
+`docker-compose.yml` runs **postgres** (`pgvector/pgvector:pg16`), **app** (this Dockerfile, port 8000), **mlflow** (same image, port 5000, volume `mlflow-data`), **prometheus** (`prom/prometheus`, port 9090), **grafana** (`grafana/grafana`, port 3000, provisioned dashboards), and **pgadmin** (`dpage/pgadmin4`, port 5050). The app service sets `POSTGRES_HOST=postgres` and `MLFLOW_TRACKING_URI=http://mlflow:5000`. Google credentials are mounted from `./secrets`. The chat/catalog HTML is bind-mounted from `./static` and the Python package from `./ecommerce_agent` so UI and API changes apply without rebuilding the image. Recreate the app container to load Python changes (`docker compose up -d --force-recreate app`); `/docs` and `/openapi.json` send `Cache-Control: no-store`. Profile `ollama` adds a local Ollama daemon. The image is Python 3.12; `pyproject.toml` sets `requires-python = ">=3.12,<3.14"` so uv does not try to resolve Torch for 3.14/Windows. App and MLflow start with `uv run --frozen --no-dev` so container start uses `uv.lock` and does not re-resolve. Schema is created by `make docker-seed` (`db/seed_products.py` → `init_db()`), not `db/init_vector_db.sql`. `init_db()` also ensures conversation tables `agent_sessions` and `agent_messages` and production tables `ask_turns` and `conversation_feedback` with `CREATE IF NOT EXISTS` when the catalog already exists. If `conversation_feedback.rating` is still text (`'up'` / `'down'`), monitoring drops that table and recreates it with integer `1` / `-1` (no `ALTER`). `make docker-pgadmin` is `docker compose up -d pgadmin` (no `--build`). `db/inspect.sql` lists tables and row counts (`make docker-inspect`).
 
 Evals stay in **MLflow**. Production latency, word counts, and thumbs feedback are in **Grafana** (Prometheus scrape of `GET /metrics`, plus Postgres for recent feedback rows). **Langfuse** remains the cloud trace UI for tool calls and generations.
 
@@ -228,7 +229,7 @@ The sync job skips ids that start with `file_`. It does not `ALTER` tables.
 
 ## Evals
 
-Runbook: `evals/evaluation.md`. Scripts are not on the ask/ingest path.
+Runbook: `evals/evaluation.md` (includes screenshots under `assets/`). Scripts are not on the ask/ingest path.
 
 `evals/datasets/faq_ground_truth.json` holds gold FAQ chunks. `evals/generate_eval_data.py` writes two synthetic shopper questions per FAQ to `evals/datasets/retrieval_eval_dataset.json` and `evals/datasets/llm_eval_dataset.json`.
 

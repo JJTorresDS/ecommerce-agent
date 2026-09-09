@@ -66,6 +66,8 @@ uv run python evals/evaluate_knowledge_search.py --search-type genai_001_embeddi
 
 Pass `--document-id` when more than one knowledge-base document exists. A **hit** means the gold `content` appears in the top-k retrieved chunks (whitespace-normalized). **MRR** is the mean reciprocal rank of that chunk.
 
+![Terminal search eval: hit@1, hit@5, MRR, and latency for search_faq_knowledgebase](../assets/terminal-search-eval.png)
+
 ## Agent response eval
 
 Needs Postgres with FAQ chunks ingested, the provider API key, and MLflow. Each row calls `build_agent()` (same tools and instructions as `POST /ask`). Rows run one at a time (`MLFLOW_GENAI_EVAL_MAX_WORKERS=1`) with a 1 second pause after each prediction so provider rate limits are not hit. `--provider` and `--experiment` are required (`openai`, `mistral`, `openrouter`, or `ollama`). The chat model is the provider default in `ecommerce_agent/config.py`; after the agent is built, `provider` and `model` are read from that object and logged as MLflow params. Mean `latency_ms` and token totals (`input_tokens`, `output_tokens`, `total_tokens`) are logged as metrics. MLflow's Correctness judge also uses an LLM (typically OpenAI).
@@ -89,3 +91,18 @@ uv run python evals/evaluate_llm_response.py --provider ollama --experiment ecom
 ```
 
 Reuse `--experiment ecommerce-agent-llm_eval` to append runs to that experiment.
+
+![MLflow agent eval: correctness, tokens, and latency for mistral-small vs gpt-4o-mini](../assets/mlflow-agent-eval.png)
+
+## Production monitoring
+
+Grafana at [http://localhost:3000](http://localhost:3000) (not an eval script). Dashboard **Ecommerce agent production** plots ask latency, ask rate, word counts, and thumbs (`rating` 1 / -1) from Prometheus + Postgres.
+
+![Grafana production dashboard: latency, ask rate, word counts, and feedback](../assets/grafana-monitoring.png)
+
+## Traces
+
+Langfuse records `POST /ask` tool calls and generations (OpenInference). Sessions group by `session_id`. This is live observability, not the MLflow eval experiments above.
+
+![Langfuse observability: ask trace, agent turns, and search_products tool I/O](../assets/langraph-observability.png)
+

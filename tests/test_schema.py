@@ -13,6 +13,9 @@ def test_init_db_creates_vector_extension_before_tables(monkeypatch):
         def all(self):
             return []
 
+        def first(self):
+            return None
+
     class FakeSession:
         def __enter__(self):
             return self
@@ -54,6 +57,9 @@ def test_init_db_skips_extension_when_tables_already_exist(monkeypatch):
 
         def all(self):
             return ["product_embeddings"]
+
+        def first(self):
+            return None
 
     class FakeSession:
         def __enter__(self):

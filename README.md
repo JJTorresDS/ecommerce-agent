@@ -2,9 +2,28 @@
 
 Chat UI and tools over Ollama, OpenRouter, OpenAI, or Mistral, with a pgvector catalog and knowledge base.
 
+## Why
 
+While modern recommender systems excel at internet scale, they fundamentally fall short for small-to-medium e-commerce store owners managing 200 to 1,000 products. Traditional collaborative filtering algorithms require millions of data points (clicks, purchases, and ratings) to find meaningful patterns. For a small merchant/seller, the data matrix is incredibly empty—a problem known as extreme data sparsity. If a store has 500 products and only a few hundred visitors a month, a deep learning or matrix factorization model cannot learn what "similar users" want because the overlap in user behavior is virtually zero. Additionally, small businesses lack the massive engineering budgets, data pipelines, and computational resources required to deploy and maintain these heavy, data-hungry algorithmic infrastructures.
+This project discusses an alternative approach for small/medium ecommerce using a computationally and cost effective architecture leveraging Agentic AI with embeddings as the engine behind product recommendations.
 
 Here is a video link demoing the app: [https://www.loom.com/share/13a709814da14644ba6a22112deef59f](https://www.loom.com/share/13a709814da14644ba6a22112deef59f)
+
+## Overview
+
+A shopper chats with a store assistant. The agent uses tools over a pgvector catalog and a Google Doc knowledge base instead of collaborative filtering.
+
+- **Product search** — each SKU is stored as an embedding (`product_embeddings`). Catalog questions call `search_products` / `get_item_details`. Upload a CSV with `POST /products/upload`, or browse the dummy catalog at `/ecommerce`.
+- **Document search** — FAQ and policy text live in `documents` / `document_embeddings`. The agent lists summaries, then searches with `search_faq_knowledgebase`. Ingest a Google Doc by URL (`POST /documents/google-doc` or `/structured`).
+- **Memory** — the chat UI keeps a `session_id` in `sessionStorage` and sends it on `POST /ask`. Turns are stored in Postgres (`agent_sessions` / `agent_messages`) so follow-ups keep context.
+- **Feedback** — each reply includes a `turn_id`. **Helpful** / **Not helpful** posts `rating` `1` or `-1` to `POST /feedback`.
+- **Observability** — production latency, word counts, and thumbs go to Prometheus + Grafana. Langfuse traces tool calls. Offline retrieval and answer evals stay in MLflow.
+
+Chat UI (`GET /`) and OpenAPI (`GET /docs`):
+
+![Chat UI: product recommendations and thumbs feedback](assets/app_ui.png)
+
+![Ecommerce Agent API: ask, feedback, ingest, metrics](assets/app_api.png)
 
 ## Run
 
@@ -18,7 +37,9 @@ make docker-seed
 
 Same as `docker compose up --build -d`, then `docker compose run --rm app uv run --frozen --no-dev python db/seed_products.py`.
 
-Open [http://localhost:8000/](http://localhost:8000/) for the chat UI (thumbs up/down after each reply), [http://localhost:8000/ecommerce](http://localhost:8000/ecommerce) for the catalog, [http://localhost:8000/docs](http://localhost:8000/docs) for the API, [http://localhost:5000](http://localhost:5000) for MLflow evals, [http://localhost:3000](http://localhost:3000) for Grafana production dashboards (login `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD`, default `admin` / `admin`), [http://localhost:9090](http://localhost:9090) for Prometheus, and [http://localhost:5050](http://localhost:5050) for pgAdmin.
+Open [http://localhost:8000/](http://localhost:8000/) for the chat UI (**Helpful** / **Not helpful** under each agent reply), [http://localhost:8000/ecommerce](http://localhost:8000/ecommerce) for the catalog, [http://localhost:8000/docs](http://localhost:8000/docs) for the API, [http://localhost:5000](http://localhost:5000) for MLflow evals, [http://localhost:3000](http://localhost:3000) for Grafana production dashboards (login `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD`, default `admin` / `admin`), [http://localhost:9090](http://localhost:9090) for Prometheus, and [http://localhost:5050](http://localhost:5050) for pgAdmin.
+
+Compose bind-mounts `./static` and `./ecommerce_agent` into the app container, so chat HTML and API code update without an image rebuild. Uvicorn does not reload on its own: recreate the app process (`docker compose up -d --force-recreate app`), then hard-refresh `/docs` (Swagger caches `openapi.json`).
 
 The first image build installs CPU PyTorch and can take several minutes. Python is pinned to `>=3.12,<3.14` (`pyproject.toml`) because Torch has no 3.14 Windows wheels; Compose runs `uv run --frozen` so app/MLflow do not re-resolve on start.
 
@@ -30,9 +51,9 @@ To run the API on the host instead of Compose (`make run_app`), keep `POSTGRES_H
 
 ## Database
 
-Compose Postgres is empty until you seed. `init_db()` enables the pgvector extension, then sizes `VECTOR(...)` from the active provider in `config.py` (`hf` → 1024, `gemini` → 768, `openai` → 1536). Gemini's native vectors are 3072-d; the app requests (and truncates + L2-normalizes) down to 768 so they fit. The same call creates conversation tables `agent_sessions` and `agent_messages` and production tables `ask_turns` and `conversation_feedback` if they are missing, including when the product catalog already exists.
+Compose Postgres is empty until you seed. `init_db()` enables the pgvector extension, then sizes `VECTOR(...)` from the active provider in `config.py` (`hf` → 1024, `gemini` → 768, `openai` → 1536). Gemini's native vectors are 3072-d; the app requests (and truncates + L2-normalizes) down to 768 so they fit. The same call creates conversation tables `agent_sessions` and `agent_messages` and production tables `ask_turns` and `conversation_feedback` if they are missing, including when the product catalog already exists. `conversation_feedback.rating` is `1` (helpful) or `-1` (not helpful). The next `/ask` or `/feedback` drops a leftover `'up'` / `'down'` text-rating table and recreates it as integer (no `ALTER`).
 
-The chat UI keeps a `session_id` in `sessionStorage` and sends it on `POST /ask`. The agent loads and stores turns for that id in Postgres so follow-ups keep context. Omit `session_id` for a one-off question. The first stored turn also creates the tables if seed has not run yet. Each reply returns a `turn_id`; use 👍 / 👎 on the bubble to `POST /feedback`. Production latency, word counts, and feedback go to Prometheus + Grafana. Offline evals stay in MLflow. Langfuse still traces tool calls in the cloud.
+The chat UI keeps a `session_id` in `sessionStorage` and sends it on `POST /ask`. The agent loads and stores turns for that id in Postgres so follow-ups keep context. Omit `session_id` for a one-off question. The first stored turn also creates the tables if seed has not run yet. Each reply returns a `turn_id`; use **Helpful** / **Not helpful** on the bubble to `POST /feedback` with `rating` 1 or -1. Production latency, word counts, and feedback go to Prometheus + Grafana. Offline evals stay in MLflow. Langfuse still traces tool calls in the cloud.
 
 ```bash
 make docker-seed
@@ -64,7 +85,7 @@ Switching `EMBEDDING_PROVIDER` after tables exist needs a drop and re-seed — p
 DROP TABLE IF EXISTS product_embeddings, document_embeddings, documents CASCADE;
 ```
 
-The SQL file `db/init_vector_db.sql` is the HF/1024-d schema for a manual `psql` load. Prefer `seed_products.py` so width matches `config.py`.
+The SQL file `db/init_vector_db.sql` is the HF/1024-d schema for a manual `psql` load. Prefer `seed_products.py` so width matches `config.py`. Table columns and purpose: `db/schema.md`.
 
 Download the local embedding model once if you use `EMBEDDING_PROVIDER = "hf"` (offline HF after that):
 
@@ -103,7 +124,7 @@ Text under `h1` becomes `documents.summary` unless you pass `"summary"`. Each `h
 
 ## Evals
 
-How the datasets and scripts fit together, plus run commands: `evals/evaluation.md`.
+How the datasets and scripts fit together, plus run commands and screenshots: `evals/evaluation.md`.
 
 Generate synthetic FAQ questions:
 
@@ -173,6 +194,19 @@ See `.env` for secrets (`POSTGRES_*`, `OPENAI_API_KEY`, `OPEN_ROUTER_API_KEY`, `
 
 Base URLs are constants in `ecommerce_agent/config.py` (`OLLAMA_BASE_URL`, `OPENROUTER_BASE_URL`, `OPENAI_BASE_URL`, `MISTRAL_BASE_URL`, `GEMINI_OPENAI_BASE_URL`) with optional env overrides.
 
+## Docs
+
+| File | What it is |
+|---|---|
+| `README.md` | How to run, configure, ingest, and use the app (this file) |
+| `architecture.md` | As-built layout, diagrams, layer rules, data model, env flags |
+| `AGENTS.md` | Contributor workflow: TDD and keep README + architecture in sync |
+| `db/schema.md` | Postgres table schemas and why each exists |
+| `evals/evaluation.md` | Offline eval datasets, scripts, and MLflow commands |
+| `ecommerce_agent/agent/instructions.md` | Live system prompt loaded by `build_agent()` |
+| `ecommerce_agent/agent/instructions_v1.md` | Previous system prompt (not loaded at runtime) |
+| `todo.md` | Scratch backlog (not as-built) |
+
 ## Layout
 
-Runtime Python lives in `ecommerce_agent/`. The stack is `docker compose up` (`Dockerfile` + `docker-compose.yml`). Unit tests live in `tests/` (`uv run pytest`). Live API pings live in `llm-api-tests/` (`make llm_api_tests`). Eval runbook: `evals/evaluation.md`. As-built diagram: `architecture.md`. Agent workflow (TDD, docs): `AGENTS.md`. Proposal that this tree follows: `architecture_proposal.md`.
+Runtime Python lives in `ecommerce_agent/`. The stack is `docker compose up` (`Dockerfile` + `docker-compose.yml`). Unit tests live in `tests/` (`uv run pytest`). Live API pings live in `llm-api-tests/` (`make llm_api_tests`). Markdown files are listed under **Docs** above.

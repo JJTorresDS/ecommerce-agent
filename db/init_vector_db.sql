@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS conversation_feedback (
     id SERIAL PRIMARY KEY,
     session_id TEXT NOT NULL,
     turn_id TEXT,
-    rating TEXT NOT NULL CHECK (rating IN ('up', 'down')),
+        rating INTEGER NOT NULL CHECK (rating IN (1, -1)),
     created_at TIMESTAMPTZ DEFAULT now()
 );
 

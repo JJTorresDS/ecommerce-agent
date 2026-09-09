@@ -19,7 +19,7 @@ ecommerce-agent/
 │   │   ├── app.py                # FastAPI factory
 │   │   ├── schemas.py
 │   │   └── routes/               # ask, feedback, products, documents, health, metrics
-│   ├── agent/                    # llm, tracing (Langfuse), memory.py, instructions.md, hooks, factory
+│   ├── agent/                    # llm, tracing (Langfuse), memory.py, instructions.md, instructions_v1.md, hooks, factory
 │   ├── monitoring/               # Prometheus metrics + Postgres ask_turns / feedback
 │   ├── tools/                    # catalog.py, knowledge.py
 │   ├── retrieval/                # read-only products + documents
@@ -28,8 +28,9 @@ ecommerce-agent/
 │   ├── integrations/google_docs.py
 │   └── jobs/sync_google_docs.py
 ├── static/                       # chat + catalog HTML
-├── db/                           # init_vector_db.sql, seed, inspect.sql, pgadmin/servers.json, download_model
+├── db/                           # schema.md, init_vector_db.sql, seed, inspect.sql, pgadmin/servers.json, download_model
 ├── notebooks/
+├── assets/                       # screenshots for README and evals/evaluation.md
 ├── evals/                        # datasets, eval scripts, evaluation.md runbook
 ├── llm-api-tests/                # live chat/embedding API pings (not in uv run pytest)
 ├── grafana/                      # provisioned datasources + production dashboard
@@ -40,12 +41,13 @@ ecommerce-agent/
 ├── .env.example                  # secrets template (copy to .env)
 ├── Makefile                      # make docker-up, docker-seed, docker-pgadmin, docker-inspect, docker-down, run_app, evals
 ├── AGENTS.md                     # TDD + keep README and architecture.md current
+├── todo.md                       # scratch backlog
 └── secrets/                      # gitignored service account
 ```
 
 ## Docker Compose
 
-`docker-compose.yml` runs **postgres** (`pgvector/pgvector:pg16`), **app** (this Dockerfile, port 8000), **mlflow** (same image, port 5000, volume `mlflow-data`), **prometheus** (`prom/prometheus`, port 9090), **grafana** (`grafana/grafana`, port 3000, provisioned dashboards), and **pgadmin** (`dpage/pgadmin4`, port 5050). The app service sets `POSTGRES_HOST=postgres` and `MLFLOW_TRACKING_URI=http://mlflow:5000`. Google credentials are mounted from `./secrets`. Profile `ollama` adds a local Ollama daemon. The image is Python 3.12; `pyproject.toml` sets `requires-python = ">=3.12,<3.14"` so uv does not try to resolve Torch for 3.14/Windows. App and MLflow start with `uv run --frozen --no-dev` so container start uses `uv.lock` and does not re-resolve. Schema is created by `make docker-seed` (`db/seed_products.py` → `init_db()`), not `db/init_vector_db.sql`. `init_db()` also ensures conversation tables `agent_sessions` and `agent_messages` and production tables `ask_turns` and `conversation_feedback` with `CREATE IF NOT EXISTS` when the catalog already exists. `make docker-pgadmin` is `docker compose up -d pgadmin` (no `--build`). `db/inspect.sql` lists tables and row counts (`make docker-inspect`).
+`docker-compose.yml` runs **postgres** (`pgvector/pgvector:pg16`), **app** (this Dockerfile, port 8000), **mlflow** (same image, port 5000, volume `mlflow-data`), **prometheus** (`prom/prometheus`, port 9090), **grafana** (`grafana/grafana`, port 3000, provisioned dashboards), and **pgadmin** (`dpage/pgadmin4`, port 5050). The app service sets `POSTGRES_HOST=postgres` and `MLFLOW_TRACKING_URI=http://mlflow:5000`. Google credentials are mounted from `./secrets`. The chat/catalog HTML is bind-mounted from `./static` and the Python package from `./ecommerce_agent` so UI and API changes apply without rebuilding the image. Recreate the app container to load Python changes (`docker compose up -d --force-recreate app`); `/docs` and `/openapi.json` send `Cache-Control: no-store`. Profile `ollama` adds a local Ollama daemon. The image is Python 3.12; `pyproject.toml` sets `requires-python = ">=3.12,<3.14"` so uv does not try to resolve Torch for 3.14/Windows. App and MLflow start with `uv run --frozen --no-dev` so container start uses `uv.lock` and does not re-resolve. Schema is created by `make docker-seed` (`db/seed_products.py` → `init_db()`), not `db/init_vector_db.sql`. `init_db()` also ensures conversation tables `agent_sessions` and `agent_messages` and production tables `ask_turns` and `conversation_feedback` with `CREATE IF NOT EXISTS` when the catalog already exists. If `conversation_feedback.rating` is still text (`'up'` / `'down'`), monitoring drops that table and recreates it with integer `1` / `-1` (no `ALTER`). `make docker-pgadmin` is `docker compose up -d pgadmin` (no `--build`). `db/inspect.sql` lists tables and row counts (`make docker-inspect`).
 
 Evals stay in **MLflow**. Production latency, word counts, and thumbs feedback are in **Grafana** (Prometheus scrape of `GET /metrics`, plus Postgres for recent feedback rows). **Langfuse** remains the cloud trace UI for tool calls and generations.
 
@@ -69,107 +71,55 @@ flowchart LR
 
 ## System overview
 
+Three paths share Postgres. Tool names, ingest endpoints, and sequence detail are in **Ask flow** and **Ingest and sync** below. `config.settings` is omitted here (see **Layer rules**).
+
 ```mermaid
 flowchart TB
-    subgraph Clients
-        ChatUI["Chat UI<br/>GET /"]
-        CatalogUI["Catalog UI<br/>GET /ecommerce"]
-        FastAPI["FastAPI / curl<br/>GET /docs"]
+    subgraph paths [Runtime]
+        direction LR
+
+        subgraph askPath [Ask]
+            direction TB
+            Chat["Chat UI"]
+            Ask["POST /ask"]
+            Agent["agent: factory, LLM,<br/>memory, Langfuse"]
+            Tools["tools → retrieval"]
+            Chat --> Ask --> Agent --> Tools
+        end
+
+        subgraph ingestPath [Ingest]
+            direction TB
+            Src["Catalog UI / OpenAPI"]
+            IngEP["POST /products<br/>POST /documents"]
+            Ing["ingest + chunking"]
+            Job["sync_google_docs"]
+            GDocs["Google Docs / Drive"]
+            Src --> IngEP --> Ing
+            Job --> GDocs --> Ing
+        end
+
+        subgraph opsPath [Metrics]
+            direction TB
+            FB["POST /feedback"]
+            Met["GET /metrics"]
+            Mon["monitoring"]
+            Obs["Prometheus → Grafana"]
+            FB --> Mon --> Obs
+            Met --> Obs
+        end
     end
 
-    subgraph API["ecommerce_agent.api"]
-        Ask["POST /ask"]
-        Feedback["POST /feedback"]
-        MetricsEP["GET /metrics"]
-        Upload["POST /products/upload"]
-        GDocEP["POST /documents/google-doc"]
-        GDocStruct["POST /documents/google-doc/structured"]
-        Health["GET /health"]
-    end
+    Emb["embeddings: HF | Gemini | OpenAI"]
+    PG[(PostgreSQL + pgvector)]
 
-    subgraph AgentPkg["ecommerce_agent.agent"]
-        Factory["factory.agent"]
-        LLM["llm: Ollama | OpenRouter | OpenAI | Mistral"]
-        Trace["Langfuse + OpenInference"]
-        Memory["memory.PostgresSession"]
-    end
-
-    subgraph ToolsPkg["ecommerce_agent.tools"]
-        TList["list_knowledgebase_documents"]
-        TFaq["search_faq_knowledgebase"]
-        TSearch["search_products"]
-        TSku["get_item_details"]
-    end
-
-    subgraph Retrieval["retrieval — read only"]
-        RProd["products.search / get_by_sku"]
-        RDocs["documents.list / search"]
-    end
-
-    subgraph IngestPkg["ingest — write only"]
-        ParseCSV["parse_products_csv"]
-        IProd["products.upsert"]
-        IDocs["upsert_document / structured"]
-        Chunk["chunking"]
-    end
-
-    subgraph Integrations["integrations.google_docs"]
-        Fetch["title + markdown headings"]
-        Drive["Drive modifiedTime"]
-    end
-
-    subgraph Monitoring["ecommerce_agent.monitoring"]
-        PromMetrics["Prometheus histograms / counters"]
-        Store["ask_turns + conversation_feedback"]
-    end
-
-    Job["jobs.sync_google_docs"]
-    Config["config.settings"]
-    Engine["db.engine"]
-    Embed["embeddings.get_provider<br/>lazy HF | Gemini | OpenAI"]
-    PG["PostgreSQL + pgvector"]
-    Prom["Prometheus"]
-    Grafana["Grafana dashboards"]
-    Langfuse["Langfuse traces"]
-
-    ChatUI --> Ask
-    ChatUI --> Feedback
-    CatalogUI --> Upload
-    FastAPI --> Ask & Feedback & Upload & GDocEP & GDocStruct & Health & MetricsEP
-
-    Ask --> Factory
-    Ask --> Memory
-    Ask --> PromMetrics
-    Ask --> Store
-    Feedback --> PromMetrics
-    Feedback --> Store
-    MetricsEP --> PromMetrics
-    Prom --> MetricsEP
-    Grafana --> Prom
-    Grafana --> PG
-    Factory --> LLM
-    Factory --> Trace
-    Trace --> Langfuse
-    Factory --> TList & TFaq & TSearch & TSku
-
-    TList --> RDocs
-    TFaq --> RDocs
-    TSearch --> RProd
-    TSku --> RProd
-
-    Upload --> ParseCSV --> IProd
-    GDocEP --> Fetch --> IDocs
-    GDocStruct --> Fetch
-    IDocs --> Chunk
-    Job --> Drive
-    Job --> Fetch
-    Job --> IDocs
-
-    RProd & RDocs & IProd & IDocs --> Embed
-    RProd & RDocs & IProd & IDocs --> Engine --> PG
-    Memory --> Engine
-    Store --> Engine
-    Factory & Fetch & Embed --> Config
+    Ask --> Mon
+    Tools --> Emb
+    Ing --> Emb
+    Agent --> PG
+    Tools --> PG
+    Ing --> PG
+    Mon --> PG
+    Obs --> PG
 ```
 
 ## Layer rules
@@ -179,7 +129,7 @@ flowchart TB
 - **retrieval** is SELECT + cosine search.
 - **ingest** is the only writer of embeddings. Catalog `init_db()` still refuses to recreate product/document tables that already exist, but it always ensures conversation memory tables and production monitoring tables.
 - **agent.memory** is the writer of chat turns (`agent_sessions`, `agent_messages`). Tables are `CREATE IF NOT EXISTS` so existing catalogs keep working.
-- **monitoring** records production `ask_turns` (latency, word counts) and `conversation_feedback` (thumbs up/down), and exposes Prometheus series on `GET /metrics`.
+- **monitoring** records production `ask_turns` (latency, word counts) and `conversation_feedback` (thumbs: `rating` 1 or -1), and exposes Prometheus series on `GET /metrics`. A leftover text-rating `conversation_feedback` table is dropped and recreated as integer.
 - **jobs** reuse ingest + integrations. Not a second write path.
 - **config.py** is the only module that reads environment variables.
 
@@ -187,7 +137,7 @@ flowchart TB
 
 For FAQ / support, the agent lists document summaries first, then searches with that `document_id`. It must not invent contact details or policies. `search_faq_knowledgebase` requires `document_id` unless exactly one document exists.
 
-The chat UI sends a `session_id` (browser `sessionStorage`). `POST /ask` passes `Runner.run(..., session=PostgresSession(session_id))` so prior turns are loaded from Postgres and new items are stored. Omit `session_id` for a single-turn call (evals do this). Each reply includes a `turn_id`; thumbs up/down on the bubble `POST /feedback` for that turn. Latency and word counts are recorded for Grafana.
+The chat UI sends a `session_id` (browser `sessionStorage`). `POST /ask` passes `Runner.run(..., session=PostgresSession(session_id))` so prior turns are loaded from Postgres and new items are stored. Omit `session_id` for a single-turn call (evals do this). Each reply includes a `turn_id`; thumbs on the bubble `POST /feedback` with `rating` 1 (up) or -1 (down). Latency and word counts are recorded for Grafana.
 
 ```mermaid
 sequenceDiagram
@@ -279,7 +229,7 @@ The sync job skips ids that start with `file_`. It does not `ALTER` tables.
 
 ## Evals
 
-Runbook: `evals/evaluation.md`. Scripts are not on the ask/ingest path.
+Runbook: `evals/evaluation.md` (includes screenshots under `assets/`). Scripts are not on the ask/ingest path.
 
 `evals/datasets/faq_ground_truth.json` holds gold FAQ chunks. `evals/generate_eval_data.py` writes two synthetic shopper questions per FAQ to `evals/datasets/retrieval_eval_dataset.json` and `evals/datasets/llm_eval_dataset.json`.
 
@@ -293,7 +243,9 @@ Runbook: `evals/evaluation.md`. Scripts are not on the ask/ingest path.
 
 ## Data model and indexes
 
-New databases (`db/init_vector_db.sql` and `ingest.schema.init_db`) use **HNSW**. Existing databases that still have IVFFlat `lists = 100` keep working because retrieval sets `ivfflat.probes = 100` per query. No live `ALTER`. Conversation memory tables are additive (`CREATE TABLE IF NOT EXISTS`).
+Column-level types and purpose: `db/schema.md`. The ER diagram below matches `init_db()` / memory / monitoring helpers.
+
+New databases (`db/init_vector_db.sql` and `ingest.schema.init_db`) use **HNSW**. Existing databases that still have IVFFlat `lists = 100` keep working because retrieval sets `ivfflat.probes = 100` per query. No live `ALTER`. Conversation memory tables are additive (`CREATE TABLE IF NOT EXISTS`). `conversation_feedback` is dropped and recreated when `rating` is still text (`'up'` / `'down'`) so new rows store integer `1` / `-1`.
 
 `embedding VECTOR(...)` width is fixed at `CREATE`. Python `init_db()` enables `CREATE EXTENSION IF NOT EXISTS vector`, then uses `provider.embedding_dim` (`hf` / bge-m3: 1024; `gemini`: 768; `openai` / text-embedding-3-small: 1536). `db/init_vector_db.sql` is hardcoded `VECTOR(1024)` for HF. Gemini's API returns 3072-d vectors; `GeminiEmbeddingProvider` requests `dimensions=768` and, if the API still returns 3072, truncates and L2-normalizes (Matryoshka). Switching providers after tables exist requires dropping `product_embeddings`, `document_embeddings`, and `documents`.
 
@@ -361,7 +313,7 @@ erDiagram
         serial id PK
         text session_id
         text turn_id
-        text rating
+        int rating
         timestamptz created_at
     }
 ```

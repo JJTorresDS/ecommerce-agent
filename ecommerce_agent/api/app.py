@@ -20,13 +20,20 @@ async def lifespan(_app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="Local Agent API", lifespan=lifespan)
+    app = FastAPI(title="Ecommerce Agent API", lifespan=lifespan)
     app.include_router(ask.router)
     app.include_router(feedback.router)
     app.include_router(health.router)
     app.include_router(metrics.router)
     app.include_router(products.router)
     app.include_router(documents.router)
+
+    @app.middleware("http")
+    async def disable_docs_cache(request, call_next):
+        response = await call_next(request)
+        if request.url.path in {"/docs", "/redoc", "/openapi.json"}:
+            response.headers["Cache-Control"] = "no-store"
+        return response
 
     @app.get("/")
     def ui():

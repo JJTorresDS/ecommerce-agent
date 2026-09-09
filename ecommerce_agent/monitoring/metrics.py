@@ -25,8 +25,8 @@ FEEDBACK = Counter(
 )
 
 # Register zero-valued feedback series so /metrics always lists the name.
-FEEDBACK.labels(rating="up")
-FEEDBACK.labels(rating="down")
+FEEDBACK.labels(rating="1")
+FEEDBACK.labels(rating="-1")
 
 
 def word_count(text: str) -> int:
@@ -45,8 +45,8 @@ def observe_ask(
     ASK_TURNS.inc()
 
 
-def observe_feedback(rating: str) -> None:
-    FEEDBACK.labels(rating=rating).inc()
+def observe_feedback(rating: int) -> None:
+    FEEDBACK.labels(rating=str(rating)).inc()
 
 
 def render_metrics() -> tuple[bytes, str]:

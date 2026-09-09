@@ -45,14 +45,14 @@ def test_feedback_thumbs_up(client, monkeypatch):
 
     response = client.post(
         "/feedback",
-        json={"session_id": "sess-1", "turn_id": "turn-123", "rating": "up"},
+        json={"session_id": "sess-1", "turn_id": "turn-123", "rating": 1},
     )
 
     assert response.status_code == 200
     assert response.json() == {"ok": True}
     assert captured["session_id"] == "sess-1"
     assert captured["turn_id"] == "turn-123"
-    assert captured["rating"] == "up"
+    assert captured["rating"] == 1
 
 
 def test_feedback_thumbs_down(client, monkeypatch):
@@ -62,7 +62,7 @@ def test_feedback_thumbs_down(client, monkeypatch):
 
     response = client.post(
         "/feedback",
-        json={"session_id": "sess-1", "rating": "down"},
+        json={"session_id": "sess-1", "rating": -1},
     )
 
     assert response.status_code == 200
@@ -77,6 +77,14 @@ def test_feedback_rejects_invalid_rating(client):
     assert response.status_code == 422
 
 
+def test_feedback_rejects_string_up_down(client):
+    response = client.post(
+        "/feedback",
+        json={"session_id": "sess-1", "rating": "up"},
+    )
+    assert response.status_code == 422
+
+
 def test_feedback_requires_session_id(client):
-    response = client.post("/feedback", json={"rating": "up"})
+    response = client.post("/feedback", json={"rating": 1})
     assert response.status_code == 422
